@@ -1,0 +1,143 @@
+html, body{
+  background-color: #EEEEEE;
+}
+a{
+  text-decoration: none;
+}
+.box{
+  margin: 15vh auto 0px;
+  background-color: #3F3F3F;
+  box-shadow: 0 5px 15px 0 rgba(62, 57, 107, 0.2);
+  padding: 10px 15px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: #FFF;
+}
+.box .logo{
+  width: 80%;
+  margin: 15px auto 0;
+}
+.box .logo img{
+  width: 100%;
+}
+.box .button{
+  padding: 8px 15px;
+  border-radius: 6px;
+  box-sizing: border-box;
+  border: none;
+  border-bottom: 2px solid rgba(0,0,0,0.2);
+  width: 100%;
+  margin: 10px auto;
+  color: #FFF;
+  font-size: 17px;
+  text-transform: uppercase;
+  font-weight: bold;
+  cursor: pointer;
+}
+a.back div{
+  color: darkgray;
+  font-size: 16px;
+  margin-bottom: 10px;
+  position: absolute;
+  margin-top: -38px;
+}
+a.back div:hover{
+  color: #9a9a9a;
+}
+.sep{
+  width: 100%;
+  border-bottom: 1.4px solid darkgray;
+  margin-bottom: 10px;
+}
+
+
+
+
+
+
+
+
+
+.box.menu{
+  width: 30%;
+}
+.box.menu ul{
+  list-style: none;
+  padding: 0px;
+  margin: 0px;
+  text-align: center;
+}
+.box.menu .button.game{
+  background-color: #D80351;
+}
+.box.menu .button.game:hover{
+  background-color: #c9034e;
+}
+
+
+
+
+
+
+.box.contree{
+  width: 30%;
+}
+.box.contree h2, .box.contree h3{
+  text-align: center;
+}
+.box.contree h2{
+  margin-bottom: 10px;
+  margin-top: 5px;
+  font-size: 35px;
+}
+.box.contree h3{
+  font-weight: normal;
+  font-size: 18px;
+  margin-top: 5px;
+}
+.box.contree ul{
+  list-style: none;
+  padding: 0px;
+  margin: 0px;
+  text-align: center;
+}
+.box.contree ul a li.create, .box.menu .game{
+  background-color: #00A3EE;
+}
+.box.contree ul a li.join{
+  background-color: #F5D908;
+}
+.box.contree ul a li.create:hover, .box.menu .game:hover{
+  background-color: #009cdf;
+}
+.box.contree ul a li.join:hover{
+  background-color: #e6ca08;
+}
+
+.box.contree.start form .private{
+  font-size: 13px;
+  font-style: italic;
+  color: darkgray;
+}
+.box.contree.start form input[type='number']{
+  padding: 8px 5px;
+  width: 80px;
+  margin-left: 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.2);
+}
+.box.contree.start form input[type='submit']{
+  background-color: #D80351;
+}
+.box.contree.start form input[type='submit']:hover{
+  background-color: #c9034e;
+}
+
+
+
+
+
+.box.belote{
+  width: 80%;
+}
