@@ -73,6 +73,11 @@ a.back div:hover{
 .box.menu .button.game:hover{
   background-color: #c9034e;
 }
+@media (max-width: 992px){
+  .box.menu{
+    width: 90%;
+  }
+}
 
 
 
@@ -132,6 +137,11 @@ a.back div:hover{
 }
 .box.contree.start form input[type='submit']:hover{
   background-color: #c9034e;
+}
+@media (max-width: 992px){
+  .box.contree{
+    width: 90%;
+  }
 }
 
 
