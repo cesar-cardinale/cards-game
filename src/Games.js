@@ -5,16 +5,23 @@ class Games {
     maxPoints = 0;
     isPrivate = false;
     ident = "";
-    teammate = [];
+    teammate1 = [];
+    teammate2 = [];
 
     constructor(isPrivate, maxPoints) {
         this.isPrivate = isPrivate;
         this.maxPoints = maxPoints;
         this.ident = Math.random().toString(36).substring(2, 10);
+    }
+    send(){
         socket.emit('createGame', this );
     }
     getIdent() {
         return this.ident;
+    }
+    getCurrentPlayer(cb){
+        socket.emit('currentPlayer', this.ident);
+        socket.on('player', player => cb(null, player) );
     }
     addMate(username, cb){
         socket.emit('addMate', this.ident, username);

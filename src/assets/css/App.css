@@ -153,6 +153,36 @@ a.back div:hover{
   border: 1px solid rgba(0,0,0,0.2);
   text-align: center;
 }
+.box.contree.username form #used{
+  text-align: center;
+  display: none;
+  color: crimson;
+  margin-top: 6px;
+}
+.box.contree.username form #used span{
+  font-weight: bold;
+}
+.box.contree.username form #used.show{
+  display: block;
+}
+.box.contree.username #buttonCapacity{
+  display: none;
+}
+.box.contree.username #buttonCapacity .start{
+  background-color: #D80351;
+}
+.box.contree.play{
+  width: 90%;
+  margin-top: 20vh;
+}
+.box.contree.play .logo{
+  width: 20%;
+  margin: -7% 40% 0 0;
+}
+.box.contree.play h2{
+  font-size: 25px;
+  margin-top: 0px;
+}
 @media (max-width: 992px){
   .box.contree{
     width: 90%;

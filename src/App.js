@@ -24,7 +24,8 @@ class App extends Component {
 				<Route exact path="/" component={Menu}/>
 				<Route exact path="/Contree" component={ContreeMenu}/>
 				<Route exact path="/Contree/Start" component={ContreeStart}/>
-				<Route exact path="/Contree/:ident/Username" component={ContreeUsername}/>
+				<Route exact path="/Contree/Join/:ident" component={ContreeUsername}/>
+				<Route exact path="/Contree/Play/:ident" component={ContreePlay}/>
 				<Route exact path="/Belote" component={BeloteMenu}/>
 			</BrowserRouter>
 		);
@@ -80,7 +81,8 @@ class ContreeStart extends React.Component {
 		event.preventDefault();
 		if(this.state.maxPoints >= 400){
 			const game = new Games(this.state.private, this.state.maxPoints);
-			this.props.history.replace('/Contree/'+game.getIdent()+'/Username');
+			game.send();
+			this.props.history.replace('/Contree/Join/'+game.getIdent());
 		}
 	}
 	render()  {
@@ -122,7 +124,7 @@ class ContreeStart extends React.Component {
 class ContreeUsername extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {ident: this.props.match.params.ident, game: new Games(), username: null, canContinue: true};
+		this.state = {ident: this.props.match.params.ident, game: new Games(), username: "", cantContinue: true};
 		Games.getGameByIdent(this.props.match.params.ident, ((err, game) => this.handleFoundGame(game)));
 
 		this.handleChange = this.handleChange.bind(this);
@@ -131,36 +133,43 @@ class ContreeUsername extends React.Component {
 
 	handleFoundGame(game){
 		this.setState({ game: Object.assign(this.state.game, game)});
-		console.log(this.state.game);
+		if(this.state.game.teammate1.length >= 2 && this.state.game.teammate2.length >= 2){
+			document.getElementById('buttonCapacity').classList.add('show');
+			document.getElementById('form').style.display = 'none';
+			document.querySelector('h3').remove();
+		}
 		if(this.state.game.ident !== this.state.ident) this.props.history.replace('/Contree');
 	}
 
 	handleChange(event) {
 		const target = event.target;
 		const value = target.value;
-		const name = target.name;
 
-		this.setState({
-			[name]: value
+		this.setState({ username: value });
+		let found = false;
+		this.state.game.teammate1.forEach(function(mate){
+			if(mate === value){ found = true; }
 		});
-		if(value.length >= 5) this.setState({canContinue: false}); else this.setState({canContinue: true});
+		this.state.game.teammate2.forEach(function(mate){
+			if(mate === value){ found = true; }
+		});
+
+		if(found){
+			document.getElementById('used').classList.add('show');
+			this.setState({ cantContinue: true });
+		} else if(value.length < 5){
+			document.getElementById('used').classList.remove('show');
+			this.setState({ cantContinue: true });
+		} else{
+			document.getElementById('used').classList.remove('show');
+			this.setState({ cantContinue: false });
+		}
 	}
 
 	handleSubmit(event) {
 		event.preventDefault();
-		this.state.game.addMate(this.state.username, ((err, thisGame) => this.handleGameNewMate(thisGame)));
-	}
-	handleGameNewMate(game){
-		let found = false;
-		this.state.game.teammate.forEach(function(mate){
-			if(mate === this.state.username) found = true;
-		});
-		if(!found){
-			this.setState({ game: Object.assign(this.state.game, game)});
-		} else {
-			document.getElementById('username').classList.add('used');
-		}
-		if(this.state.game.ident !== this.state.ident) this.props.history.replace('/Contree');
+		this.state.game.addMate(this.state.username, ((err, thisGame) => this.handleFoundGame(thisGame)));
+		this.props.history.replace('/Contree/Play/'+this.state.ident);
 	}
 
 	render()  {
@@ -169,16 +178,61 @@ class ContreeUsername extends React.Component {
 				<Logo />
 				<h2>Contrée</h2>
 				<div className="sep"/>
-				{ /* <BackButton link="/Contree/Start"/> */ }
 				<h3>Nom d'utilisateur</h3>
-				<form onSubmit={this.handleSubmit}>
-					<input type="text" name="username" value={this.state.value} onChange={this.handleChange} />
-					<input type="submit" className="button" value="Commencer" disabled={this.state.canContinue} />
+				<form id="form" onSubmit={this.handleSubmit}>
+					<input type="text" name="username" value={this.state.username} onChange={this.handleChange} />
+					<div id="used"><span>{this.state.username}</span> est déjà utilisé</div>
+					<input type="submit" id="buttonStart" className="button" value="Commencer" disabled={this.state.cantContinue} />
 				</form>
+				<span id="buttonCapacity">
+				<BackButton link="/Contree"/>
+				<div className="button start">Cette partie est déjà pleine, vous ne pouvez pas la rejoindre</div>
+				</span>
 			</div>
 		);
 	}
 }
+
+class ContreePlay extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = {ident: this.props.match.params.ident, game: new Games(), currentPlayer: null};
+		Games.getGameByIdent(this.props.match.params.ident, ((err, game) => this.handleFoundGame(game)));
+	}
+
+	handleCurrentPlayer(player){
+		this.setState({currentPlayer: player});
+		document.getElementById('wait').innerHTML = this.state.currentPlayer.username;
+	}
+	handleFoundGame(game){
+		this.setState({ game: Object.assign(this.state.game, game)});
+		this.state.game.getCurrentPlayer( ((err, player) => this.handleCurrentPlayer(player)));
+		if(this.state.game.teammate1.length < 2 || this.state.game.teammate2.length < 2){
+		} else {
+			document.getElementById('wait').remove();
+		}
+		if(this.state.game.ident !== this.state.ident) this.props.history.replace('/Contree');
+	}
+	render()  {
+		return (
+			<div className="box contree play">
+				<Logo />
+				<h2>Contrée - Partie #{this.state.ident}</h2>
+				<div className="sep"/>
+				<BackButton link="/Contree/Join"/>
+				<div id="wait">
+					{this.state.game.teammate1.length}<br />
+					{this.state.game.teammate2.length}
+				</div>
+			</div>
+		);
+	}
+}
+
+
+
+
+
 
 class BeloteMenu extends React.Component {
 	render()  {
