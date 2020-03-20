@@ -1,21 +1,29 @@
 html, body{
   background-color: #EEEEEE;
 }
+*{
+  box-sizing: border-box;
+}
+*:focus {
+  outline: none;
+}
 a{
   text-decoration: none;
 }
 .box{
-  margin: 15vh auto 0px;
+  margin: 25vh auto 0px;
   background-color: #3F3F3F;
   box-shadow: 0 5px 15px 0 rgba(62, 57, 107, 0.2);
   padding: 10px 15px;
   border-radius: 8px;
   box-sizing: border-box;
   color: #FFF;
+  position: relative;
 }
 .box .logo{
-  width: 80%;
-  margin: 15px auto 0;
+  width: 92%;
+  position: absolute;
+  margin: -25% auto 0;
 }
 .box .logo img{
   width: 100%;
@@ -33,6 +41,7 @@ a{
   text-transform: uppercase;
   font-weight: bold;
   cursor: pointer;
+  text-align: center;
 }
 a.back div{
   color: darkgray;
@@ -100,22 +109,16 @@ a.back div:hover{
   font-size: 18px;
   margin-top: 5px;
 }
-.box.contree ul{
-  list-style: none;
-  padding: 0px;
-  margin: 0px;
-  text-align: center;
-}
-.box.contree ul a li.create, .box.menu .game{
+.box.contree a div.create, .box.menu .game{
   background-color: #00A3EE;
 }
-.box.contree ul a li.join{
+.box.contree a div.join{
   background-color: #F5D908;
 }
-.box.contree ul a li.create:hover, .box.menu .game:hover{
+.box.contree a div.create:hover, .box.menu .game:hover{
   background-color: #009cdf;
 }
-.box.contree ul a li.join:hover{
+.box.contree a div.join:hover{
   background-color: #e6ca08;
 }
 
@@ -132,19 +135,29 @@ a.back div:hover{
   border-radius: 6px;
   border: 1px solid rgba(0,0,0,0.2);
 }
-.box.contree.start form input[type='submit']{
+.box.contree form input[type='submit']{
   background-color: #D80351;
 }
-.box.contree.start form input[type='submit']:hover{
+.box.contree form input[type='submit']:hover{
   background-color: #c9034e;
+}
+.box.contree form input[type='submit']:disabled{
+  cursor: not-allowed;
+  background-color: darkgray;
+}
+.box.contree.username form input[type='text']{
+  padding: 8px 5px;
+  width: 100%;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.2);
+  text-align: center;
 }
 @media (max-width: 992px){
   .box.contree{
     width: 90%;
   }
 }
-
-
 
 
 
