@@ -252,7 +252,7 @@ class ContreePlay extends React.Component {
 		}
 	}
 	getCurrentMate(){
-		if(this.state.currentPlayer !== undefined){
+		if(this.state.currentPlayer !== null){
 			return( this.state.currentPlayer.username );
 		}
 	}
