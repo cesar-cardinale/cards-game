@@ -23,6 +23,10 @@ class Games {
         socket.emit('currentPlayer', this.ident);
         socket.on('player', player => cb(null, player) );
     }
+    subscribeGame(cb){
+        socket.on('game', game => cb(null, game));
+        socket.emit('subscribeGame', this.ident);
+    }
     addMate(username, cb){
         socket.emit('addMate', this.ident, username);
         socket.on('game', thisGame => cb(null, thisGame) );

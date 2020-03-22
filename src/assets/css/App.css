@@ -1,5 +1,6 @@
-html, body{
+html{
   background-color: #EEEEEE;
+  transition: all 0.6s ease-out;
 }
 *{
   box-sizing: border-box;
@@ -172,12 +173,19 @@ a.back div:hover{
   background-color: #D80351;
 }
 .box.contree.play{
-  width: 90%;
-  margin-top: 20vh;
+  width: 95%;
+  margin-top: 12vh;
+  background-color: #FFFFFF;
+  color: #000;
+  min-height: 85vh;
 }
 .box.contree.play .logo{
-  width: 20%;
-  margin: -7% 40% 0 0;
+  width: 100%;
+  margin: -100px 0 0 0;
+}
+.box.contree.play .logo div{
+  width: 25%;
+  margin: 0 auto;
 }
 .box.contree.play h2{
   font-size: 25px;

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { BrowserRouter, Route } from "react-router-dom";
 import logo from './assets/img/logo.png';
+import logoWhite from './assets/img/logo_w.png';
 import Games from './Games';
 import './assets/css/App.css';
 import './assets/css/FontAwesome.css';
@@ -66,6 +67,9 @@ class ContreeStart extends React.Component {
 		this.handleInputChange = this.handleInputChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
 	}
+	componentDidMount(){
+		document.title = "Contrée - Création";
+	}
 
 	handleInputChange(event) {
 		const target = event.target;
@@ -129,6 +133,9 @@ class ContreeUsername extends React.Component {
 
 		this.handleChange = this.handleChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
+	}
+	componentDidMount(){
+		document.title = "Contrée - Partie #"+this.state.game.ident;
 	}
 
 	handleFoundGame(game){
@@ -199,19 +206,55 @@ class ContreePlay extends React.Component {
 		this.state = {ident: this.props.match.params.ident, game: new Games(), currentPlayer: null};
 		Games.getGameByIdent(this.props.match.params.ident, ((err, game) => this.handleFoundGame(game)));
 	}
+	componentDidMount(){
+		document.title = "Contrée - Partie #"+this.state.game.ident;
+		document.querySelector('html').style.backgroundColor = "#3F3F3F";
+		document.querySelector('.logo img').setAttribute("src", logoWhite);
+	}
 
 	handleCurrentPlayer(player){
 		this.setState({currentPlayer: player});
-		document.getElementById('wait').innerHTML = this.state.currentPlayer.username;
 	}
 	handleFoundGame(game){
 		this.setState({ game: Object.assign(this.state.game, game)});
-		this.state.game.getCurrentPlayer( ((err, player) => this.handleCurrentPlayer(player)));
+		try {
+			this.state.game.getCurrentPlayer(((err, player) => this.handleCurrentPlayer(player)));
+			this.state.game.subscribeGame(((err, game) => this.handleLiveGame(game)));
+		}catch (e) {
+			//console.log(e);
+		}
+		/*
 		if(this.state.game.teammate1.length < 2 || this.state.game.teammate2.length < 2){
 		} else {
 			document.getElementById('wait').remove();
 		}
 		if(this.state.game.ident !== this.state.ident) this.props.history.replace('/Contree');
+		 */
+	}
+
+	handleLiveGame(thisGame){
+		this.setState({ game: Object.assign(this.state.game, thisGame)});
+	}
+	getFirstMate(){
+		console.log(this.state.teammate1);
+		if(this.state.game.teammate1[0] !== undefined){
+			return( this.state.game.teammate1[0].username );
+		}
+	}
+	getSecondMate(){
+		if(this.state.game.teammate1[1] !== undefined){
+			return( this.state.game.teammate1[1].username );
+		}
+	}
+	getThirdMate(){
+		if(this.state.game.teammate2[0] !== undefined){
+			return( this.state.game.teammate2[0].username );
+		}
+	}
+	getCurrentMate(){
+		if(this.state.currentPlayer !== undefined){
+			return( this.state.currentPlayer.username );
+		}
 	}
 	render()  {
 		return (
@@ -221,8 +264,10 @@ class ContreePlay extends React.Component {
 				<div className="sep"/>
 				<BackButton link="/Contree/Join"/>
 				<div id="wait">
-					{this.state.game.teammate1.length}<br />
-					{this.state.game.teammate2.length}
+					<div>J1 {this.getFirstMate()}</div>
+					<div>J2 {this.getSecondMate()}</div>
+					<div>J3 {this.getThirdMate()}</div>
+					<div>ME {this.getCurrentMate()}</div>
 				</div>
 			</div>
 		);
@@ -245,7 +290,7 @@ class BeloteMenu extends React.Component {
 	}
 }
 
-const Logo = () => <div className="logo"><a href="/"><img src={logo} alt="logo"/></a></div>;
+const Logo = () => <div className="logo"><div><a href="/"><img src={logo} alt="logo"/></a></div></div>;
 
 const Button = ({ link, classTitle, text }) => <a href={link}><div className={`button ${classTitle}`}>{text}</div></a>;
 

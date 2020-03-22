@@ -23,6 +23,16 @@ io.on('connection', (client) => {
     client.emit('game', theGame);
   });
 
+  client.on('subscribeGame', (id) => {
+    setInterval(() => {
+      let theGame = 'no data found';
+      games.forEach(function(game){
+        if(game.ident === id) theGame = game;
+      });
+      client.emit('game', theGame);
+    }, 2500);
+  });
+
   client.on('addMate', (id, username) => {
     const clientIp = client.request.connection.remoteAddress;
     games.forEach(function(game){
