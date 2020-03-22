@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { BrowserRouter, Route } from "react-router-dom";
 import logo from './assets/img/logo.png';
 import logoWhite from './assets/img/logo_w.png';
-import Games from './Games';
+import { Game } from './Game';
 import './assets/css/App.css';
 import './assets/css/FontAwesome.css';
 
@@ -84,9 +84,10 @@ class ContreeStart extends React.Component {
 	handleSubmit(event) {
 		event.preventDefault();
 		if(this.state.maxPoints >= 400){
-			const game = new Games(this.state.private, this.state.maxPoints);
+			let ident = Math.random().toString(36).substring(2, 10);
+			const game = new Game(ident, this.state.private, this.state.maxPoints);
 			game.send();
-			this.props.history.replace('/Contree/Join/'+game.getIdent());
+			this.props.history.replace('/Contree/Join/'+game.ident);
 		}
 	}
 	render()  {
@@ -128,19 +129,24 @@ class ContreeStart extends React.Component {
 class ContreeUsername extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {ident: this.props.match.params.ident, game: new Games(), username: "", cantContinue: true};
-		Games.getGameByIdent(this.props.match.params.ident, ((err, game) => this.handleFoundGame(game)));
+		this.state = {
+			ident: this.props.match.params.ident,
+			game: new Game(this.props.match.params.ident, null, null),
+			username: "",
+			cantContinue: true
+		};
 
+        this.handleLiveGame = this.handleLiveGame.bind(this);
 		this.handleChange = this.handleChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
 	}
-	componentDidMount(){
+    componentDidMount(){
 		document.title = "Contrée - Partie #"+this.state.game.ident;
+        this.state.game.populate( this.handleLiveGame );
 	}
-
-	handleFoundGame(game){
-		this.setState({ game: Object.assign(this.state.game, game)});
-		if(this.state.game.teammate1.length >= 2 && this.state.game.teammate2.length >= 2){
+	handleLiveGame(game){
+		this.setState((state, props) => ({game: Object.assign(state.game, game)}) );
+        if(this.state.game.teammate1.length >= 2 && this.state.game.teammate2.length >= 2){
 			document.getElementById('buttonCapacity').classList.add('show');
 			document.getElementById('form').style.display = 'none';
 			document.querySelector('h3').remove();
@@ -160,7 +166,6 @@ class ContreeUsername extends React.Component {
 		this.state.game.teammate2.forEach(function(mate){
 			if(mate === value){ found = true; }
 		});
-
 		if(found){
 			document.getElementById('used').classList.add('show');
 			this.setState({ cantContinue: true });
@@ -175,7 +180,7 @@ class ContreeUsername extends React.Component {
 
 	handleSubmit(event) {
 		event.preventDefault();
-		this.state.game.addMate(this.state.username, ((err, thisGame) => this.handleFoundGame(thisGame)));
+		this.state.game.addMate(this.state.username);
 		this.props.history.replace('/Contree/Play/'+this.state.ident);
 	}
 
@@ -184,6 +189,8 @@ class ContreeUsername extends React.Component {
 			<div className="box contree username">
 				<Logo />
 				<h2>Contrée</h2>
+				<div className="sep"/>
+				<h3>Joindre la partie #{this.state.ident}</h3>
 				<div className="sep"/>
 				<h3>Nom d'utilisateur</h3>
 				<form id="form" onSubmit={this.handleSubmit}>
@@ -203,71 +210,82 @@ class ContreeUsername extends React.Component {
 class ContreePlay extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {ident: this.props.match.params.ident, game: new Games(), currentPlayer: null};
-		Games.getGameByIdent(this.props.match.params.ident, ((err, game) => this.handleFoundGame(game)));
+		this.state = {
+			ident: this.props.match.params.ident,
+			game: new Game(this.props.match.params.ident, null, null),
+			currentPlayer: undefined
+		};
+        this.getMate = this.getMate.bind(this);
+        this.handleLiveGame = this.handleLiveGame.bind(this);
+        this.handleCurrentPlayer = this.handleCurrentPlayer.bind(this);
 	}
 	componentDidMount(){
+        this.state.game.populate(this.handleLiveGame);
+        this.state.game.onUpdate(this.handleLiveGame);
+        this.state.game.getCurrentPlayer(this.handleCurrentPlayer);
 		document.title = "Contrée - Partie #"+this.state.game.ident;
 		document.querySelector('html').style.backgroundColor = "#3F3F3F";
 		document.querySelector('.logo img').setAttribute("src", logoWhite);
 	}
-
-	handleCurrentPlayer(player){
-		this.setState({currentPlayer: player});
+	handleLiveGame(game){
+		if(game !== 'no_data') this.setState((state, props) => ({ game: game }));
 	}
-	handleFoundGame(game){
-		this.setState({ game: Object.assign(this.state.game, game)});
-		try {
-			this.state.game.getCurrentPlayer(((err, player) => this.handleCurrentPlayer(player)));
-			this.state.game.subscribeGame(((err, game) => this.handleLiveGame(game)));
-		}catch (e) {
-			//console.log(e);
-		}
-		/*
-		if(this.state.game.teammate1.length < 2 || this.state.game.teammate2.length < 2){
-		} else {
-			document.getElementById('wait').remove();
-		}
-		if(this.state.game.ident !== this.state.ident) this.props.history.replace('/Contree');
-		 */
+    handleCurrentPlayer(player){
+		this.setState((state, props) => ({ currentPlayer: player }));
 	}
-
-	handleLiveGame(thisGame){
-		this.setState({ game: Object.assign(this.state.game, thisGame)});
-	}
-	getFirstMate(){
-		console.log(this.state.teammate1);
-		if(this.state.game.teammate1[0] !== undefined){
-			return( this.state.game.teammate1[0].username );
-		}
-	}
-	getSecondMate(){
-		if(this.state.game.teammate1[1] !== undefined){
-			return( this.state.game.teammate1[1].username );
-		}
-	}
-	getThirdMate(){
-		if(this.state.game.teammate2[0] !== undefined){
-			return( this.state.game.teammate2[0].username );
-		}
-	}
-	getCurrentMate(){
-		if(this.state.currentPlayer !== null){
+	getMate(place){
+		if(this.state.currentPlayer !== undefined && place === 'me'){
 			return( this.state.currentPlayer.username );
+		}
+		let myTeam = 0;
+		if(this.state.currentPlayer !== undefined){
+            const username = this.state.currentPlayer.username;
+			this.state.game.teammate1.forEach(function(player){
+				if(player.username === username) myTeam = 1;
+			});
+			this.state.game.teammate2.forEach(function(player){
+				if(player.username === username) myTeam = 2;
+			});
+			let temp = 0;
+            let selectedUsername = "";
+			if(myTeam === 1 && place === 'mate'){
+				this.state.game.teammate1.forEach( function(player){ 
+					if(player.username !== username ) selectedUsername = player.username;
+				});
+			} else if(myTeam === 2 && place === 'mate'){
+				this.state.game.teammate2.forEach( function(player){ 
+					if(player.username !== username ) selectedUsername = player.username;
+				});
+			} else if(myTeam !== 1 && (place === 'first' || place === 'second') ){
+				this.state.game.teammate2.forEach( function(player){
+					if(player.username !== username && place === 'first' && temp === 0) selectedUsername = player.username;
+					if(player.username !== username && place === 'second' && temp === 1) selectedUsername = player.username;
+					temp += 1;
+				});
+			} else if(myTeam !== 1 && (place === 'first' || place === 'second') ){
+				this.state.game.teammate1.forEach( function(player){
+					if(player.username !== username && place === 'first' && temp === 0) selectedUsername = player.username;
+					if(player.username !== username && place === 'second' && temp === 1) selectedUsername = player.username;
+					temp += 1;
+				});
+			}
+            return( selectedUsername );
 		}
 	}
 	render()  {
+		console.log('JEU', this.state.game);
 		return (
 			<div className="box contree play">
 				<Logo />
-				<h2>Contrée - Partie #{this.state.ident}</h2>
+				<h2>Contrée - Partie #{this.state.game.ident}</h2>
 				<div className="sep"/>
 				<BackButton link="/Contree/Join"/>
 				<div id="wait">
-					<div>J1 {this.getFirstMate()}</div>
-					<div>J2 {this.getSecondMate()}</div>
-					<div>J3 {this.getThirdMate()}</div>
-					<div>ME {this.getCurrentMate()}</div>
+                    <h3>En attente des joueurs ...</h3>
+					<div>Co equipier {this.getMate('mate')}</div>
+					<div>Adv 1 {this.getMate('first')}</div>
+					<div>Adv 2 {this.getMate('second')}</div>
+					<div>Moi {this.getMate('me')}</div>
 				</div>
 			</div>
 		);
