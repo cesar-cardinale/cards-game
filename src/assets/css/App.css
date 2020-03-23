@@ -1,9 +1,11 @@
+@import url('https://fonts.googleapis.com/css?family=Lato:400,700,900&display=swap');
 html{
   background-color: #EEEEEE;
   transition: all 0.6s ease-out;
 }
 *{
   box-sizing: border-box;
+  font-family: 'Lato', sans-serif;
 }
 *:focus {
   outline: none;
@@ -40,16 +42,16 @@ a{
   color: #FFF;
   font-size: 17px;
   text-transform: uppercase;
-  font-weight: bold;
+  font-weight: 900;
   cursor: pointer;
   text-align: center;
 }
 a.back div{
   color: darkgray;
-  font-size: 16px;
+  font-size: 14px;
   margin-bottom: 10px;
   position: absolute;
-  margin-top: -38px;
+  margin-top: -49px;
 }
 a.back div:hover{
   color: #9a9a9a;
@@ -102,7 +104,7 @@ a.back div:hover{
 }
 .box.contree h2{
   margin-bottom: 10px;
-  margin-top: 5px;
+  margin-top: 0;
   font-size: 35px;
 }
 .box.contree h3{
@@ -190,6 +192,22 @@ a.back div:hover{
   font-size: 25px;
   margin-top: 0px;
 }
+.box.contree.play a.back div{
+  margin-top: -44px;
+}
+.box.contree.play .shareInput{
+  position: absolute;
+  right: 15px;
+  margin-top: -52px;
+}
+.box.contree.play .shareInput input{
+  width: 405px;
+  border-radius: 5px;
+  border: 1px solid darkgray;
+  text-align: center;
+  padding: 5px 5px;
+  font-size: 13px;
+}
 
 /* En attente des joueurs */
 .box.contree.play #wait{
@@ -228,7 +246,7 @@ a.back div:hover{
 }
 .box.contree.play #wait .players .player .avatar img.load{
   height: 50%;
-  margin-top: 10%;
+  margin-top: 12%;
 }
 .box.contree.play #wait .players .player p{
   color: #a3a3a3;
@@ -236,11 +254,50 @@ a.back div:hover{
   font-weight: lighter;
   margin: 0 0 5px 0;
 }
+.box.contree.play #wait .players .player .choose{
+  background-color: #c9034e;
+  font-size: 14px;
+  text-transform: uppercase;
+  text-align: center;
+  border-radius: 15px;
+  padding: 8px 16px;
+  margin-top: 5px;
+  display: inline;
+}
+.box.contree.play #choice{
+  width: 100%;
+  display: none;
+}
+.box.contree.play #choice .button.choice{
+  background-color: #D80351;
+  width: 49.5%;
+  margin: 0;
+  display: inline-block;
+}
+.box.contree.play #choice .button.choice.first{
+  margin-right: 1%;
+}
+.box.contree.play #choice .button.choice:hover{
+  background-color: #c9034e;
+}
 
 
 @media (max-width: 992px){
   .box.contree{
     width: 90%;
+  }
+  .box.contree.play .shareInput{
+    position: initial;
+    width: 100%;
+    text-align: center;
+    border-bottom: 1.4px solid darkgray;
+    margin: 0 auto 10px;
+    padding: 0 0 15px 0;
+
+  }
+  .box.contree.play .shareInput input {
+    width: 100%;
+    margin-top: 5px;
   }
   .box.contree.play #wait .players{
     display: block;

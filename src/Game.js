@@ -1,5 +1,10 @@
 import openSocket from 'socket.io-client';
-const  socket = openSocket('http://192.168.1.11:8000');
+let socket = null;
+if(window.location.hostname === 'cards-game-server.herokuapp.com'){
+    socket = openSocket('http://cards-game-server.herokuapp.com/:8000');
+} else {
+    socket = openSocket('http://192.168.1.11:8000');
+}
 
 class Game {
     maxPoints;
@@ -29,6 +34,10 @@ class Game {
     getCurrentPlayer(cb){
         socket.emit('current-player', this.ident);
         socket.on('current-player', (player) => cb(player) );
+    }
+    setChoice(cb, choice, username){
+        socket.emit('set-choice', this.ident, username, choice);
+        socket.on('update-game', (game) => cb(Object.assign(new Game(), game)));
     }
 
 

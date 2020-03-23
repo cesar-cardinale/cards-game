@@ -7,9 +7,6 @@ import { Game } from './Game';
 import './assets/css/App.css';
 import './assets/css/FontAwesome.css';
 
-// import { subscribeToTimer } from './api';
-//subscribeToTimer((err, timestamp) => this.setState({ timestamp }));
-
 class App extends Component {
 	state = {
 		timestamp: 'no timestamp yet'
@@ -17,11 +14,6 @@ class App extends Component {
 
 	render() {
 		return (
-			/*<div className="App">
-              <p className="App-intro">
-              Il est : {this.state.timestamp}
-              </p>
-            </div>*/
 			<BrowserRouter>
 				<Route exact path="/" component={Menu}/>
 				<Route exact path="/Contree" component={ContreeMenu}/>
@@ -134,16 +126,19 @@ class ContreeUsername extends React.Component {
 			ident: this.props.match.params.ident,
 			game: new Game(this.props.match.params.ident, null, null),
 			username: "",
+			currentPlayer: null,
 			cantContinue: true
 		};
 
         this.handleLiveGame = this.handleLiveGame.bind(this);
+		this.handleCurrentPlayer = this.handleCurrentPlayer.bind(this);
 		this.handleChange = this.handleChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
 	}
     componentDidMount(){
 		document.title = "Contrée - Partie #"+this.state.game.ident;
         this.state.game.populate( this.handleLiveGame );
+		this.state.game.getCurrentPlayer(this.handleCurrentPlayer);
 	}
 	handleLiveGame(game){
 		this.setState((state, props) => ({game: Object.assign(state.game, game)}) );
@@ -153,6 +148,10 @@ class ContreeUsername extends React.Component {
 			document.querySelector('h3').remove();
 		}
 		if(this.state.game.ident !== this.state.ident) this.props.history.replace('/Contree');
+	}
+	handleCurrentPlayer(player){
+		this.setState((state, props) => ({ currentPlayer: player }));
+		if(this.state.currentPlayer !== null) this.props.history.replace('/Contree/Play/'+this.state.game.ident);
 	}
 
 	handleChange(event) {
@@ -216,9 +215,11 @@ class ContreePlay extends React.Component {
 			game: new Game(this.props.match.params.ident, null, null),
 			currentPlayer: undefined
 		};
-        this.getMate = this.getMate.bind(this);
         this.handleLiveGame = this.handleLiveGame.bind(this);
         this.handleCurrentPlayer = this.handleCurrentPlayer.bind(this);
+		this.getMate = this.getMate.bind(this);
+		this.chooseKing = this.chooseKing.bind(this);
+		this.chooseMate = this.chooseMate.bind(this);
 	}
 	componentDidMount(){
         this.state.game.populate(this.handleLiveGame);
@@ -235,14 +236,21 @@ class ContreePlay extends React.Component {
 	}
     handleCurrentPlayer(player){
 		this.setState((state, props) => ({ currentPlayer: player }));
+		this.checkIfFull();
 		if(this.state.currentPlayer === undefined) this.props.history.replace('/Contree/Join/'+this.state.game.ident);
 	}
+	checkIfFull(){
+		if(this.state.game.teammate1.length === 1 && this.state.game.teammate2.length === 0){
+			document.querySelector('#wait h2').textContent = 'Choix des équipes';
+			if(!this.state.currentPlayer.choice)  document.querySelector('#choice').style.display = 'block';
+		}
+	}
 	getMate(place){
-		if(this.state.currentPlayer !== undefined && place === 'me'){
-			return( this.state.currentPlayer.username );
+		if(this.state.currentPlayer !== null && this.state.currentPlayer !== undefined && place === 'me'){
+			return( this.state.currentPlayer );
 		}
 		let myTeam = 0;
-		if(this.state.currentPlayer !== undefined){
+		if(this.state.currentPlayer !== null && this.state.currentPlayer !== undefined){
             const username = this.state.currentPlayer.username;
 			this.state.game.teammate1.forEach(function(player){
 				if(player.username === username) myTeam = 1;
@@ -254,32 +262,42 @@ class ContreePlay extends React.Component {
             let selectedUsername = "";
 			if(myTeam === 1 && place === 'mate'){
 				this.state.game.teammate1.forEach( function(player){ 
-					if(player.username !== username ) selectedUsername = player.username;
+					if(player.username !== username ) selectedUsername = player;
 				});
 			} else if(myTeam === 2 && place === 'mate'){
 				this.state.game.teammate2.forEach( function(player){ 
-					if(player.username !== username ) selectedUsername = player.username;
+					if(player.username !== username ) selectedUsername = player;
 				});
 			} else if(myTeam !== 2 && (place === 'first' || place === 'second') ){
 				this.state.game.teammate2.forEach( function(player){
-					if(player.username !== username && place === 'first' && temp === 0) selectedUsername = player.username;
-					if(player.username !== username && place === 'second' && temp === 1) selectedUsername = player.username;
+					if(player.username !== username && place === 'first' && temp === 0) selectedUsername = player;
+					if(player.username !== username && place === 'second' && temp === 1) selectedUsername = player;
 					temp += 1;
 				});
 			} else if(myTeam !== 1 && (place === 'first' || place === 'second') ){
 				this.state.game.teammate1.forEach( function(player){
-					if(player.username !== username && place === 'first' && temp === 0) selectedUsername = player.username;
-					if(player.username !== username && place === 'second' && temp === 1) selectedUsername = player.username;
+					if(player.username !== username && place === 'first' && temp === 0) selectedUsername = player;
+					if(player.username !== username && place === 'second' && temp === 1) selectedUsername = player;
 					temp += 1;
 				});
 			}
             return( selectedUsername );
 		}
+		return( {username: "", IP: null, choice: null} );
+	}
+
+	chooseKing(){
+		this.state.game.setChoice(this.handleLiveGame, 'king', this.state.currentPlayer.username);
+		document.querySelector('#choice').remove();
+	}
+	chooseMate(){
+		this.state.game.setChoice(this.handleLiveGame, 'mate', this.state.currentPlayer.username);
+		document.querySelector('#choice').remove();
 	}
 	render()  {
 		console.log('JEU', this.state.game);
-		const mate = this.getMate('mate');
 		const me = this.getMate('me');
+		const mate = this.getMate('mate');
 		const adv1 = this.getMate('first');
 		const adv2 = this.getMate('second');
 		return (
@@ -288,28 +306,38 @@ class ContreePlay extends React.Component {
 				<h2>Contrée - Partie #{this.state.game.ident}</h2>
 				<div className="sep"/>
 				<BackButton link="/Contree/Join"/>
+				<InputShareLink link={`/Contree/Join/${this.state.game.ident}`} />
 				<div id="wait">
                     <h2>En attente de tous les joueurs ...</h2>
 					<div className="players">
 						<div className="player">
-							<div className="avatar"><Avatar username={me} /></div>
-							<p>Joueur 1</p>
-							{me}</div>
+							<div className="avatar"><Avatar username={me.username} /></div>
+							<p>Joueur 1 (moi)</p>
+							{me.username}
+							<ChoiceFlag user={me}/>
+						</div>
 						<div className="player">
-							<div className="avatar"><Avatar username={mate} /></div>
+							<div className="avatar"><Avatar username={mate.username} /></div>
 							<p>Joueur 2</p>
-							{mate}
+							{mate.username}
+							<ChoiceFlag user={mate}/>
 						</div>
 						<div className="player">
-							<div className="avatar"><Avatar username={adv1} /></div>
+							<div className="avatar"><Avatar username={adv1.username} /></div>
 							<p>Joueur 3</p>
-							{adv1}
+							{adv1.username}
+							<ChoiceFlag user={adv1}/>
 						</div>
 						<div className="player">
-							<div className="avatar"><Avatar username={adv2} /></div>
+							<div className="avatar"><Avatar username={adv2.username} /></div>
 							<p>Joueur 4</p>
-							{adv2}
+							{adv2.username}
+							<ChoiceFlag user={adv2}/>
 						</div>
+					</div>
+					<div id="choice">
+						<ChoiceButton classTitle="first" event={this.chooseKing} text="Tirer les rois" />
+						<ChoiceButton classTitle="" event={this.chooseMate} text="Choisir son équipier" />
 					</div>
 				</div>
 			</div>
@@ -333,12 +361,27 @@ class BeloteMenu extends React.Component {
 	}
 }
 
-const Avatar = ({username}) => (username)? <img src={`https://avatars.dicebear.com/v2/avataaars/${username}.svg?options[mouth][]=twinkle&options[eyes][]=squint&options[background]=%23FFFFFF`} /> : <img className="load" src={load} />;
-
 const Logo = () => <div className="logo"><div><a href="/"><img src={logo} alt="logo"/></a></div></div>;
 
 const Button = ({ link, classTitle, text }) => <a href={link}><div className={`button ${classTitle}`}>{text}</div></a>;
 
+const ChoiceButton = ({ classTitle, event, text }) => <button onClick={event} className={`button choice ${classTitle}`}>{text}</button>;
+
 const BackButton = ({ link }) => <a href={link} className="back"><div><i className="fas fa-arrow-circle-left" /> Retour</div></a>;
+
+const InputShareLink = ({ link }) => <div className="shareInput">Inviter <i className="fas fa-share-square" /> <input type="text" value={`http://cards-game-server.herokuapp.com${link}`} disabled/></div>;
+
+const Avatar = ({username}) => (username)? <img alt={`Avatar de ${username}`} src={`https://avatars.dicebear.com/v2/avataaars/${username}.svg?options[mouth][]=twinkle&options[eyes][]=squint&options[background]=%23FFFFFF`} /> : <img className="load" alt="En attente" src={load} />;
+
+function ChoiceFlag({user}){
+	if(user.choice === 'king'){
+		return <div className="choose">Veut tirer les rois</div>;
+	}
+	else if(user.choice === 'mate'){
+		return <div className="choose">Veut chosir</div>;
+	} else {
+		return "";
+	}
+}
 
 export default App;
