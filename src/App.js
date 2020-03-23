@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { BrowserRouter, Route } from "react-router-dom";
 import logo from './assets/img/logo.png';
 import logoWhite from './assets/img/logo_w.png';
+import load from './assets/img/load.gif';
 import { Game } from './Game';
 import './assets/css/App.css';
 import './assets/css/FontAwesome.css';
@@ -228,10 +229,13 @@ class ContreePlay extends React.Component {
 		document.querySelector('.logo img').setAttribute("src", logoWhite);
 	}
 	handleLiveGame(game){
-		if(game !== 'no_data') this.setState((state, props) => ({ game: game }));
+		if(game !== 'no_data'){
+			this.setState((state, props) => ({ game: game }));
+		}
 	}
     handleCurrentPlayer(player){
 		this.setState((state, props) => ({ currentPlayer: player }));
+		if(this.state.currentPlayer === undefined) this.props.history.replace('/Contree/Join/'+this.state.game.ident);
 	}
 	getMate(place){
 		if(this.state.currentPlayer !== undefined && place === 'me'){
@@ -256,7 +260,7 @@ class ContreePlay extends React.Component {
 				this.state.game.teammate2.forEach( function(player){ 
 					if(player.username !== username ) selectedUsername = player.username;
 				});
-			} else if(myTeam !== 1 && (place === 'first' || place === 'second') ){
+			} else if(myTeam !== 2 && (place === 'first' || place === 'second') ){
 				this.state.game.teammate2.forEach( function(player){
 					if(player.username !== username && place === 'first' && temp === 0) selectedUsername = player.username;
 					if(player.username !== username && place === 'second' && temp === 1) selectedUsername = player.username;
@@ -274,6 +278,10 @@ class ContreePlay extends React.Component {
 	}
 	render()  {
 		console.log('JEU', this.state.game);
+		const mate = this.getMate('mate');
+		const me = this.getMate('me');
+		const adv1 = this.getMate('first');
+		const adv2 = this.getMate('second');
 		return (
 			<div className="box contree play">
 				<Logo />
@@ -281,11 +289,28 @@ class ContreePlay extends React.Component {
 				<div className="sep"/>
 				<BackButton link="/Contree/Join"/>
 				<div id="wait">
-                    <h3>En attente des joueurs ...</h3>
-					<div>Co equipier {this.getMate('mate')}</div>
-					<div>Adv 1 {this.getMate('first')}</div>
-					<div>Adv 2 {this.getMate('second')}</div>
-					<div>Moi {this.getMate('me')}</div>
+                    <h2>En attente de tous les joueurs ...</h2>
+					<div className="players">
+						<div className="player">
+							<div className="avatar"><Avatar username={me} /></div>
+							<p>Joueur 1</p>
+							{me}</div>
+						<div className="player">
+							<div className="avatar"><Avatar username={mate} /></div>
+							<p>Joueur 2</p>
+							{mate}
+						</div>
+						<div className="player">
+							<div className="avatar"><Avatar username={adv1} /></div>
+							<p>Joueur 3</p>
+							{adv1}
+						</div>
+						<div className="player">
+							<div className="avatar"><Avatar username={adv2} /></div>
+							<p>Joueur 4</p>
+							{adv2}
+						</div>
+					</div>
 				</div>
 			</div>
 		);
@@ -307,6 +332,8 @@ class BeloteMenu extends React.Component {
 		);
 	}
 }
+
+const Avatar = ({username}) => (username)? <img src={`https://avatars.dicebear.com/v2/avataaars/${username}.svg?options[mouth][]=twinkle&options[eyes][]=squint&options[background]=%23FFFFFF`} /> : <img className="load" src={load} />;
 
 const Logo = () => <div className="logo"><div><a href="/"><img src={logo} alt="logo"/></a></div></div>;
 

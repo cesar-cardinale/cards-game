@@ -42,28 +42,17 @@ io.on('connection', (client) => {
     games.forEach(function(game){
       if(game.ident === ident) selectedGame = game;
     });
-    let currentPlayer = null;
+    let currentPlayer = undefined;
     if(selectedGame !== 'no_data'){
         selectedGame.teammate1.forEach(function(player){
           if(player.IP === clientIp) currentPlayer = player;
-            console.log(player.IP, clientIp);
         });
         selectedGame.teammate2.forEach(function(player){
           if(player.IP === clientIp) currentPlayer = player;
-            console.log(player.IP, clientIp);
         });
     }
-    console.log('[!]#'+ident,'Current user asked //', currentPlayer);
+    console.log('[!]#'+ident,'Current user asked //', currentPlayer.username);
     client.emit('current-player', currentPlayer);
-  });
-
-
-
-  client.on('subscribeToTimer', (interval) => {
-    console.log('client is subscribing to timer with interval ', interval);
-    setInterval(() => {
-      client.emit('timer', new Date());
-    }, interval);
   });
 });
 
