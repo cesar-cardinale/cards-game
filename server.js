@@ -1,5 +1,16 @@
 const io = require('socket.io')();
 const db = require('better-sqlite3')('database.db');
+var ifaces = require('os').networkInterfaces();
+
+// Iterate over interfaces ...
+var adresses = Object.keys(ifaces).reduce(function (result, dev) {
+  return result.concat(ifaces[dev].reduce(function (result, details) {
+    return result.concat(details.family === 'IPv4' && !details.internal ? [details.address] : []);
+  }, []));
+});
+
+// Print the result
+console.log(adresses)
 
 io.on('connection', (client) => {
   // Ajout du nouveau jeu dans la database
