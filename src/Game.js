@@ -14,6 +14,7 @@ class Game {
     player3;
     player4;
     team = [["", ""], ["", ""]];
+    isTeamSet = 0;
 
     constructor(ident, isPrivate, maxPoints) {
         this.ident = ident;

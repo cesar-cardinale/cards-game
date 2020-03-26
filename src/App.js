@@ -259,7 +259,7 @@ class ContreePlay extends React.Component {
 		if(this.state.currentPlayer === undefined) this.props.history.replace('/Contree/Join/'+this.state.game.ident);
 	}
 	checkIfFull(){
-		if(this.state.game.player1 && this.state.game.player2 && this.state.game.player3 && this.state.game.player4){
+		if(this.state.game.player1 && this.state.game.player2 && this.state.game.player3 && this.state.game.player4 && !this.state.game.isTeamSet){
 			document.querySelector('#wait h2').textContent = 'Choix des équipes';
 			if(!this.state.currentPlayer.choice)  document.querySelector('#choice').style.display = 'block';
 		}
