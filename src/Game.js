@@ -1,9 +1,10 @@
 import openSocket from 'socket.io-client';
 let socket = null;
+const port = process.env.PORT || 3000;
 if(window.location.hostname === 'cards-game-server.herokuapp.com'){
-    socket = openSocket('https://cards-game-server.herokuapp.com:3000');
+    socket = openSocket('https://cards-game-server.herokuapp.com:'+port);
 } else {
-    socket = openSocket('http://localhost:3000');
+    socket = openSocket('http://localhost:'+port);
 }
 
 class Game {
