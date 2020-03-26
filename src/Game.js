@@ -1,5 +1,5 @@
 import openSocket from 'socket.io-client';
-let socket = openSocket('http://localhost:8000');
+let socket = openSocket('https://localhost:3000');
 
 class Game {
     maxPoints;

@@ -112,6 +112,6 @@ io.on('connection', (client) => {
   });
 });
 
-const port = 8000;
+const port = 3000;
 io.listen(port);
 console.log('Server launched, listening on port ', port);
