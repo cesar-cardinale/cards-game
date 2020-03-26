@@ -1,9 +1,10 @@
 import openSocket from 'socket.io-client';
-/*let socket = null;
+let socket = null;
 if(window.location.hostname === 'cards-game-server.herokuapp.com'){
     socket = openSocket('http://cards-game-server.herokuapp.com/:8000');
-} else { */
-let socket = openSocket('http://localhost:8000');
+} else {
+    socket = openSocket('http://localhost:8000');
+}
 
 class Game {
     maxPoints;
