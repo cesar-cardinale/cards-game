@@ -66,7 +66,15 @@ class ContreeStart extends React.Component {
 
 	handleInputChange(event) {
 		const target = event.target;
-		const value = target.name === 'private' ? target.checked : parseInt(Math.round(target.value/50)*50);
+		let tmp;
+		if(target.name === 'private' && target.checked){
+			tmp = 1;
+		} else if(target.name === 'private' && !target.checked){
+			tmp = 0;
+		} else {
+			tmp = parseInt(Math.round(target.value / 50) * 50);
+		}
+		const value = tmp;
 		const name = target.name;
 
 		this.setState({
@@ -141,14 +149,20 @@ class ContreeUsername extends React.Component {
 		this.state.game.getCurrentPlayer(this.handleCurrentPlayer);
 	}
 	handleLiveGame(game){
+		game.player1 = JSON.parse(game.player1);
+		game.player2 = JSON.parse(game.player2);
+		game.player3 = JSON.parse(game.player3);
+		game.player4 = JSON.parse(game.player4);
+		game.team = JSON.parse(game.team);
 		this.setState((state, props) => ({game: Object.assign(state.game, game)}) );
-        if(this.state.game.teammate1.length >= 2 && this.state.game.teammate2.length >= 2){
+        if(this.state.game.player1 && this.state.game.player2 && this.state.game.player3 && this.state.game.player4){
 			document.getElementById('buttonCapacity').classList.add('show');
 			document.getElementById('form').style.display = 'none';
 			document.querySelector('h3').remove();
 		}
 		if(this.state.game.ident !== this.state.ident) this.props.history.replace('/Contree');
 	}
+
 	handleCurrentPlayer(player){
 		this.setState((state, props) => ({ currentPlayer: player }));
 		if(this.state.currentPlayer !== null) this.props.history.replace('/Contree/Play/'+this.state.game.ident);
@@ -156,16 +170,16 @@ class ContreeUsername extends React.Component {
 
 	handleChange(event) {
 		const target = event.target;
-		const value = target.value;
+		const value = target.value.replace(/\s/g, '').toLowerCase();
 
 		this.setState({ username: value });
 		let found = false;
-		this.state.game.teammate1.forEach(function(mate){
-			if(mate === value){ found = true; }
-		});
-		this.state.game.teammate2.forEach(function(mate){
-			if(mate === value){ found = true; }
-		});
+		if( (this.state.game.player1 && this.state.game.player1.username === value) ||
+			(this.state.game.player2 && this.state.game.player2.username === value) ||
+			(this.state.game.player3 && this.state.game.player3.username === value) ||
+			(this.state.game.player4 && this.state.game.player4.username === value) ){
+			found = true;
+		}
 		if(found){
 			document.getElementById('used').classList.add('show');
 			this.setState({ cantContinue: true });
@@ -231,6 +245,11 @@ class ContreePlay extends React.Component {
 	}
 	handleLiveGame(game){
 		if(game !== 'no_data'){
+			game.player1 = JSON.parse(game.player1);
+			game.player2 = JSON.parse(game.player2);
+			game.player3 = JSON.parse(game.player3);
+			game.player4 = JSON.parse(game.player4);
+			game.team = JSON.parse(game.team);
 			this.setState((state, props) => ({ game: game }));
 		}
 	}
@@ -240,50 +259,57 @@ class ContreePlay extends React.Component {
 		if(this.state.currentPlayer === undefined) this.props.history.replace('/Contree/Join/'+this.state.game.ident);
 	}
 	checkIfFull(){
-		if(this.state.game.teammate1.length === 1 && this.state.game.teammate2.length === 0){
+		if(this.state.game.player1 && this.state.game.player2 && this.state.game.player3 && this.state.game.player4){
 			document.querySelector('#wait h2').textContent = 'Choix des équipes';
 			if(!this.state.currentPlayer.choice)  document.querySelector('#choice').style.display = 'block';
 		}
 	}
 	getMate(place){
+		const team = this.state.game.team;
 		if(this.state.currentPlayer !== null && this.state.currentPlayer !== undefined && place === 'me'){
 			return( this.state.currentPlayer );
 		}
-		let myTeam = 0;
+		let selectedUser;
 		if(this.state.currentPlayer !== null && this.state.currentPlayer !== undefined){
+			let myTeam = 0;
+			let currentIndexUser;
             const username = this.state.currentPlayer.username;
-			this.state.game.teammate1.forEach(function(player){
-				if(player.username === username) myTeam = 1;
-			});
-			this.state.game.teammate2.forEach(function(player){
-				if(player.username === username) myTeam = 2;
-			});
-			let temp = 0;
-            let selectedUsername = "";
-			if(myTeam === 1 && place === 'mate'){
-				this.state.game.teammate1.forEach( function(player){ 
-					if(player.username !== username ) selectedUsername = player;
-				});
-			} else if(myTeam === 2 && place === 'mate'){
-				this.state.game.teammate2.forEach( function(player){ 
-					if(player.username !== username ) selectedUsername = player;
-				});
-			} else if(myTeam !== 2 && (place === 'first' || place === 'second') ){
-				this.state.game.teammate2.forEach( function(player){
-					if(player.username !== username && place === 'first' && temp === 0) selectedUsername = player;
-					if(player.username !== username && place === 'second' && temp === 1) selectedUsername = player;
-					temp += 1;
-				});
-			} else if(myTeam !== 1 && (place === 'first' || place === 'second') ){
-				this.state.game.teammate1.forEach( function(player){
-					if(player.username !== username && place === 'first' && temp === 0) selectedUsername = player;
-					if(player.username !== username && place === 'second' && temp === 1) selectedUsername = player;
-					temp += 1;
-				});
+			currentIndexUser = team[0].indexOf(username);
+			if(currentIndexUser > -1){
+				myTeam = 1;
+				selectedUser = (currentIndexUser === 1)? team[0][0] : team[0][1];
 			}
-            return( selectedUsername );
+			if(currentIndexUser < 0){
+				currentIndexUser = team[1].indexOf(username);
+				if(currentIndexUser > -1){
+					myTeam = 2;
+					selectedUser = (currentIndexUser === 1)? team[1][0] : team[1][1];
+				}
+			}
+			if(selectedUser && place === 'mate'){
+				return this.player(selectedUser);
+			}
+			if(myTeam !== 2 && (place === 'first' || place === 'second') ){
+				if(team[1][0] && team[1][0] !== username && place === 'first') return this.player(team[1][0]);
+				if(team[1][1] && team[1][1] !== username && place === 'second') return this.player(team[1][1]);
+			} else if(myTeam !== 1 && (place === 'first' || place === 'second') ){
+				if(team[0][0] && team[0][0] !== username && place === 'first') return this.player(team[0][0]);
+				if(team[0][1] && team[0][1] !== username && place === 'second') return this.player(team[0][1]);
+			}
 		}
 		return( {username: "", IP: null, choice: null} );
+	}
+
+	player(username){
+		if(this.state.game.player1 && this.state.game.player1.username === username){
+			return this.state.game.player1;
+		} else if(this.state.game.player2 && this.state.game.player2.username === username){
+			return this.state.game.player2;
+		} else if(this.state.game.player3 && this.state.game.player3.username === username){
+			return this.state.game.player3;
+		} else if(this.state.game.player4 && this.state.game.player4.username === username){
+			return this.state.game.player4;
+		}
 	}
 
 	chooseKing(){

@@ -3,14 +3,17 @@ import openSocket from 'socket.io-client';
 if(window.location.hostname === 'cards-game-server.herokuapp.com'){
     socket = openSocket('http://cards-game-server.herokuapp.com/:8000');
 } else { */
-let socket = openSocket('http://localhost:8000');
+let socket = openSocket('http://192.168.1.11:8000');
 
 class Game {
     maxPoints;
     isPrivate;
     ident;
-    teammate1 = [];
-    teammate2 = [];
+    player1;
+    player2;
+    player3;
+    player4;
+    team = [["", ""], ["", ""]];
 
     constructor(ident, isPrivate, maxPoints) {
         this.ident = ident;
@@ -24,11 +27,11 @@ class Game {
         socket.emit('get-game', this.ident);
         socket.on('update-game', (game) => cb(Object.assign(new Game(), game)));
     }
-    addMate(username){
-        socket.emit('add-mate', this.ident, username);
-    }
     onUpdate(cb){
         socket.on('update-game', (game) => cb(Object.assign(new Game(), game)));
+    }
+    addMate(username){
+        socket.emit('add-mate', this.ident, username);
     }
     getCurrentPlayer(cb){
         socket.emit('current-player', this.ident);
