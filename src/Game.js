@@ -2,7 +2,7 @@ const io = require('socket.io-client');
 const socketURL =
     process.env.NODE_ENV === 'production'
         ? window.location.hostname
-        : 'https://localhost:4001';
+        : 'http://localhost:4001';
 
 const socket = io.connect(socketURL, {secure: true});
 
