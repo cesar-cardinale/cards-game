@@ -1,5 +1,10 @@
-const port = process.env.PORT || 4001;
-let socket = require('socket.io-client')('http://'+window.location.hostname+':'+port);
+const io = require('socket.io-client');
+const socketURL =
+    process.env.NODE_ENV === 'production'
+        ? window.location.hostname
+        : 'https://localhost:4001';
+
+const socket = io.connect(socketURL, {secure: true});
 
 class Game {
     maxPoints;
