@@ -12,6 +12,7 @@ const port = process.env.PORT || 4001;
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
+io.set('origins', '*:*');
 
 io.on('connection', (client) => {
   // Ajout du nouveau jeu dans la database
