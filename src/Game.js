@@ -1,11 +1,5 @@
-import openSocket from 'socket.io-client';
-let socket = null;
-const port = process.env.PORT || 3000;
-if(window.location.hostname === 'cards-game-server.herokuapp.com'){
-    socket = openSocket();
-} else {
-    socket = openSocket('http://localhost:'+port);
-}
+const port = process.env.PORT || 4001;
+let socket = require('socket.io-client')('http://'+window.location.hostname+':'+port);
 
 class Game {
     maxPoints;

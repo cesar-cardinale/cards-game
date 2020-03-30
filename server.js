@@ -1,17 +1,17 @@
 'use strict';
 
-const express = require('express');
-const socketIO = require('socket.io');
+const express = require("express");
+const http = require("http");
+const socketIo = require("socket.io");
 const db = require('better-sqlite3')('database.db');
 
-const PORT = process.env.PORT || 3000;
-const INDEX = '/index.html';
+//Port from environment variable or default - 4001
+const port = process.env.PORT || 4001;
 
-const server = express()
-    .use((req, res) => res.sendFile(INDEX, { root: __dirname }))
-    .listen(PORT, () => console.log(`Listening on ${PORT}`));
-
-const io = socketIO(server);
+//Setting up express and adding socketIo middleware
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server);
 
 io.on('connection', (client) => {
   // Ajout du nouveau jeu dans la database
@@ -124,6 +124,4 @@ io.on('connection', (client) => {
   });
 });
 
-const port = process.env.PORT || 8000;
-io.listen(port);
-console.log('Server launched, listening on port ', port);
+server.listen(port, () => console.log(`Listening on port ${port}`));
