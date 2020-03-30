@@ -5,11 +5,19 @@ const http = require("http");
 const socketIo = require("socket.io");
 const db = require('better-sqlite3')('database.db');
 
-//Port from environment variable or default - 4001
-const port = process.env.PORT || 4001;
-
-//Setting up express and adding socketIo middleware
 const app = express();
+
+if (process.env.NODE_ENV === 'production') {
+
+  app.use(express.static('build'));
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'));
+  });
+}
+
+
+const port = process.env.PORT || 4001;
 const server = http.createServer(app);
 const io = socketIo(server);
 io.set('origins', '*:*');
