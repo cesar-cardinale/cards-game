@@ -8,10 +8,6 @@ import './assets/css/App.css';
 import './assets/css/FontAwesome.css';
 
 class App extends Component {
-	state = {
-		timestamp: 'no timestamp yet'
-	};
-
 	render() {
 		return (
 			<BrowserRouter>
@@ -32,7 +28,7 @@ class Menu extends React.Component {
 			<div className="box menu">
 				<Logo />
 				<Button link="/Contree" classTitle="game" text="Contrée" />
-				<Button link="/Belote" classTitle="game" text="Belote" />
+				{/* <Button link="/Belote" classTitle="game" text="Belote" /> */}
 			</div>
 		);
 	}
