@@ -13,6 +13,15 @@ html{
 a{
   text-decoration: none;
 }
+html.black_bg{
+  background-color: #3F3F3F;
+}
+html.white_bg{
+  background-color: #EEEEEE;
+}
+
+
+
 .box{
   margin: 25vh auto 0px;
   background-color: #3F3F3F;
@@ -254,6 +263,12 @@ a.back div:hover{
   font-weight: lighter;
   margin: 0 0 5px 0;
 }
+.box.contree.play #wait .players .player p.username{
+  color: #FFF;
+  font-size: 20px;
+  font-weight: normal;
+  margin: 0 0 10px 0;
+}
 .box.contree.play #wait .players .player .choose{
   background-color: #c9034e;
   font-size: 14px;
@@ -263,22 +278,228 @@ a.back div:hover{
   padding: 8px 16px;
   margin-top: 5px;
   display: inline;
+  line-height: 32px;
 }
-.box.contree.play #choice{
+.box.contree.play #choices{
   width: 100%;
-  display: none;
 }
-.box.contree.play #choice .button.choice{
+.box.contree.play #choices .button.choice{
   background-color: #D80351;
   width: 49.5%;
   margin: 0;
   display: inline-block;
 }
-.box.contree.play #choice .button.choice.first{
+.box.contree.play #choices .button.choice.first{
   margin-right: 1%;
 }
-.box.contree.play #choice .button.choice:hover{
+.box.contree.play #choices .button.choice:hover{
   background-color: #c9034e;
+}
+.box.contree.play #king_scene table{
+  width: 100%;
+}
+.box.contree.play #king_scene table .box_player .stack{
+  position: absolute;
+  overflow: hidden;
+  height: 100px;
+  margin-left: 9%;
+}
+.box.contree.play #king_scene table .box_player.top .stack .card{
+  margin-top: -100px;
+}
+.box.contree.play #king_scene table .players{
+  text-align: center;
+  box-shadow: 0 5px 15px 0 rgba(62, 57, 107, 0.2);
+  padding: 10px 15px;
+  margin: auto;
+  border-radius: 8px;
+  background-color: #3F3F3F;
+  color: #FFF;
+  font-weight: bold;
+  font-size: 20px;
+  width: 80%;
+}
+.box.contree.play #king_scene table .players .player{
+  width: 50%;
+  display: inline-block;
+  padding: 20px;
+}
+.box.contree.play #king_scene table .players .player .avatar img{
+  height: 100%;
+  border-radius: 100%;
+}
+.box.contree.play #king_scene table .player p:first-of-type{
+  font-weight: initial;
+  font-size: 13px;
+  margin-bottom: 0;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  background-color: #c9034e;
+  border-radius: 15px;
+}
+.box.contree.play #king_scene table .player p:nth-child(2){
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
+.box.contree.play #king_scene table .main{
+  width: 40%;
+  height: 300px;
+}
+
+
+.box.contree.play #mates_scene .players{
+  display: flex;
+  flex-wrap: wrap;
+}.box.contree.play #mates_scene .players a {
+   flex: 1 0 30%;
+   width: 30%;
+   margin: 1.5%;
+ }
+.box.contree.play #mates_scene .players .player:hover {
+  cursor: pointer;
+}
+.box.contree.play #mates_scene .players .player{
+  text-align: center;
+  padding: 10px 15px;
+  margin: auto;
+  border-radius: 8px;
+  background-color: #3F3F3F;
+  color: #FFF;
+  font-weight: bold;
+  font-size: 20px;
+  width: 100%;
+}
+.box.contree.play #mates_scene .players .player .avatar{
+  width: 100px;
+  margin: 10px auto 0;
+}
+.box.contree.play #mates_scene .players .player .avatar img{
+  width: 100%;
+  border-radius: 100%;
+}
+.box.contree.play #mates_scene .players .player p.username{
+  color: #FFF;
+  font-size: 20px;
+  font-weight: normal;
+  margin: 10px 0;
+}
+
+
+.box.contree.play #game_view .teams{
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.box.contree.play #game_view .teams .team{
+  flex: 1 0 46%;
+  width: 46%;
+  background-color: #3F3F3F;
+  color: #FFF;
+  margin: 0 1%;
+  text-align: center;
+  padding: 10px 15px;
+  border-radius: 50px;
+}
+.box.contree.play #game_view .teams .team span{
+  background-color: #FFF;
+  color: #3F3F3F;
+  padding: 3px 8px;
+  border-radius: 50px;
+  margin-left: 10px;
+}
+.box.contree.play #game_view table{
+  width: 100%;
+}
+.box.contree.play #game_view table .player{
+  text-align: center;
+  padding: 5px 10px;
+  margin: auto;
+  border-radius: 8px;
+  background-color: #3F3F3F;
+  color: #FFF;
+  width: 100%;
+}
+.box.contree.play #game_view table .player .avatar{
+  width: 80px;
+  margin: 5px auto 0;
+}
+.box.contree.play #game_view table .player .avatar img{
+  width: 100%;
+  border-radius: 100%;
+}
+.box.contree.play #game_view table .player p.username{
+  color: #FFF;
+  font-size: 18px;
+  font-weight: normal;
+  margin: 5px 0 2px 0;
+}
+.box.contree.play #game_view .deck{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+.box.contree.play #game_view .deck li{
+  display: inline-block;
+  margin-right: -85px;
+  height: 200px;
+  width: 150px;
+}
+.box.contree.play #game_view .deck li .card{
+  position: absolute;
+  transition: all .2s ease-out;
+}
+.box.contree.play #game_view .deck li .card:hover{
+  margin-top: -20px;
+}
+
+
+/* CARTES */
+.card{
+  height: 200px;
+  width: 150px;
+  border-radius: 5px;
+  background-color: #FFFFFF;
+  border: solid 2px rgba(0,0,0,0.2);
+  padding: 6px 10px;
+  position: relative;
+  margin: 0 auto;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 50%;
+  box-shadow: 0 5px 15px 0 rgba(62, 57, 107, 0.2);
+  cursor: pointer;
+}
+.card.pique, .card.pique .topValue, .card.pique .bottomValue{
+  background-image: url("../img/pique.png");
+}
+.card.coeur, .card.coeur .topValue, .card.coeur .bottomValue{
+  background-image: url("../img/coeur.png");
+}
+.card.trefle, .card.trefle .topValue, .card.trefle .bottomValue{
+  background-image: url("../img/trefle.png");
+}
+.card.carreau, .card.carreau .topValue, .card.carreau .bottomValue{
+  background-image: url("../img/carreau.png");
+}
+.card .topValue{
+  text-align: left;
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+}
+.card .bottomValue{
+  position: absolute;
+  bottom: 10px;
+  text-align: right;
+  width: 124px;
+  background-position: left center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+}
+.card .topValue, .card .bottomValue{
+  font-weight: bold;
+  font-size: 19px;
 }
 
 
