@@ -6,7 +6,7 @@ const io = require('socket.io')(server, { origins:'*:*' });
 const db = require('better-sqlite3')('database.db');
 const port = process.env.PORT || 4001;
 const suits = ["coeur", "pique", "trefle", "carreau"];
-const values = ["A", "7", "8", "9", "10", "J", "Q", "K"];
+const values = ["A", 7, 8, 9, 10, "J", "Q", "K"];
 
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static('build'));
@@ -62,9 +62,6 @@ io.on('connection', (client) => {
         team.T2P2 = username;
         console.log('[!]#' + chalk.greenBright.bold(game.ident), '[ADD P4]', username);
       }
-      team.T1P2 = 'test1';
-      team.T2P1 = 'test2';
-      team.T2P2 = 'test3';
       stmtTeam.run(JSON.stringify(team), ident);
       game = stmt.get(ident);
     }
@@ -147,8 +144,8 @@ io.on('connection', (client) => {
         stmt2.run(JSON.stringify(game.startDeck), ident);
         console.log('[!]#' + chalk.greenBright.bold(game.ident), '[START DECK] Saved');
 
-        const choice = {value: 'mates', title: 'Séléctionnez votre équipier'}; //{value: 'king', title: 'Tirage des rois'}; //getChoice(game);
-        if(choice.value === 'king') startSortByKingTeam(io, game);
+        const choice = getChoice(game); //{value: 'mates', title: 'Séléctionnez votre équipier'}; //{value: 'king', title: 'Tirage des rois'}; //getChoice(game);
+        if(choice.value === 'king') startSortByKingTeam(game);
       }
       game = stmt.get(ident);
       io.emit('update-game', game);
@@ -167,7 +164,76 @@ io.on('connection', (client) => {
     }
     game = stmt.get(ident);
     io.emit('update-game', game);
-    });
+  });
+
+  client.on('new-bid', (ident, rounds) => {
+    const stmt = db.prepare('SELECT * FROM contree WHERE ident=? LIMIT 1');
+    let game = stmt.get(ident);
+    if(game) {
+      game.team = JSON.parse(game.team);
+      game.rounds = rounds;
+      game = setNextCurrentPlayer(game);
+      saveRounds(game);
+      console.log('[!]#' + chalk.greenBright.bold(game.ident), '[ROUNDS] Bid - Updated');
+    }
+    game = stmt.get(ident);
+    io.emit('update-game', game);
+  });
+
+  client.on('pass-bid', (ident) => {
+    const stmt = db.prepare('SELECT * FROM contree WHERE ident=? LIMIT 1');
+    let game = stmt.get(ident);
+    if(game) {
+      game.team = JSON.parse(game.team);
+      game.rounds = JSON.parse(game.rounds);
+      game = setNextCurrentPlayer(game);
+      game = testIfBidIsFinished(game);
+      saveRounds(game);
+      console.log('[!]#' + chalk.greenBright.bold(game.ident), '[ROUNDS] Pass - Updated');
+    }
+    game = stmt.get(ident);
+    io.emit('update-game', game);
+  });
+  client.on('card-played', (ident, card, username) => {
+    const stmt = db.prepare('SELECT * FROM contree WHERE ident=? LIMIT 1');
+    let game = stmt.get(ident);
+    if(game) {
+      game.player1 = JSON.parse(game.player1);
+      game.player2 = JSON.parse(game.player2);
+      game.player3 = JSON.parse(game.player3);
+      game.player4 = JSON.parse(game.player4);
+      game.rounds = JSON.parse(game.rounds);
+      game.team = JSON.parse(game.team);
+      if(game.rounds[this.state.game.currentRound].folds[this.state.game.rounds[this.state.game.currentRound].currentFold].length >= 4) {
+        const winner = winnerOfFold(game.rounds[this.state.game.currentRound].folds[this.state.game.rounds[this.state.game.currentRound].currentFold], game.rounds[this.state.game.currentRound].asset);
+        const teamWinner = getTeam(winner.username, game.team);
+        if(teamWinner === 1) game.rounds[this.state.game.currentRound].pointsT1 += winner.points;
+        if(teamWinner === 2) game.rounds[this.state.game.currentRound].pointsT2 += winner.points;
+        game.rounds[this.state.game.currentRound].currentPlayer = winner.username;
+        game.rounds[this.state.game.currentRound].currentFold += 1;
+        game.rounds[this.state.game.currentRound].folds.push([]);
+      }
+      game.rounds[this.state.game.currentRound].folds[this.state.game.rounds[this.state.game.currentRound].currentFold].push({card: card, username: username});
+      game = setNextCurrentPlayer(game);
+      saveRounds(game);
+      if(game.player1.username === username){
+        game.player1.deck = game.player1.deck.filter(thisCard => (thisCard.suit !== card.suit || thisCard.value !== card.value) );
+        updatePlayer(game, game.player1);
+      } else if(game.player2.username === username){
+        game.player2.deck = game.player2.deck.filter(thisCard => (thisCard.suit !== card.suit || thisCard.value !== card.value) );
+        updatePlayer(game, game.player2);
+      } else if(game.player3.username === username){
+        game.player3.deck = game.player3.deck.filter(thisCard => (thisCard.suit !== card.suit || thisCard.value !== card.value) );
+        updatePlayer(game, game.player3);
+      } else if(game.player4.username === username){
+        game.player4.deck = game.player4.deck.filter(thisCard => (thisCard.suit !== card.suit || thisCard.value !== card.value) );
+        updatePlayer(game, game.player4);
+      }
+    }
+    console.log('[!]#' + chalk.greenBright.bold(game.ident), '[ROUNDS] Card played - Updated');
+    game = stmt.get(ident);
+    io.emit('update-game', game);
+  });
 });
 
 function getChoice(game){
@@ -267,13 +333,197 @@ function firstDistribute(game){
   const rounds = [{
     currentSpeaker: game.player1.username,
     bids: [],
-    folds: [],
-    asset: '',
-    teamSpeaker: '',
-    isBidOver: false
+    folds: [[]],
+    asset: {
+      suit: '',
+      points: 70
+    },
+    teamSpeaker: 0,
+    isBidOver: false,
+    isFinished: false,
+    currentFold: 0,
+    pointsT1: 0,
+    pointsT2: 0
   }];
   const stmt1 = db.prepare('UPDATE contree SET player1=?, player2=?, player3=?, player4=?,startDeck=?, rounds=? WHERE ident=?');
   stmt1.run(JSON.stringify(game.player1), JSON.stringify(game.player2), JSON.stringify(game.player3), JSON.stringify(game.player4), JSON.stringify(game.startDeck), JSON.stringify(rounds), game.ident);
+}
+
+function setNextCurrentPlayer(game) {
+  // !!! GAME.ROUNDS ET GAME.TEAM DOIVENT ÊTRE PARSÉS
+  if (game.rounds[game.currentRound].currentSpeaker === game.team.T1P1) {
+    game.rounds[game.currentRound].currentSpeaker = game.team.T2P2;
+  } else if (game.rounds[game.currentRound].currentSpeaker === game.team.T1P2) {
+    game.rounds[game.currentRound].currentSpeaker = game.team.T2P1;
+  } else if (game.rounds[game.currentRound].currentSpeaker === game.team.T2P1) {
+    game.rounds[game.currentRound].currentSpeaker = game.team.T1P1;
+  } else if (game.rounds[game.currentRound].currentSpeaker === game.team.T2P2) {
+    game.rounds[game.currentRound].currentSpeaker = game.team.T1P2;
+  }
+  console.log('[!]#' + chalk.yellow.bold(game.ident), chalk.greenBright('[ROUNDS] Next player set'));
+  return game;
+}
+function testIfBidIsFinished(game){
+  // !!! GAME.ROUNDS ET GAME.TEAM DOIVENT ÊTRE PARSÉS
+  if (game.rounds[game.currentRound].bids.length > 0 && game.rounds[game.currentRound].currentSpeaker === game.rounds[game.currentRound].bids[game.rounds[game.currentRound].bids.length-1].username) {
+    game.isBidOver = true;
+    game.rounds[game.currentRound].currentSpeaker = game.currentPlayer;
+    game.rounds[game.currentRound].asset.points = game.rounds[game.currentRound].bids[game.rounds[game.currentRound].bids.length-1].points;
+    game.rounds[game.currentRound].asset.suit = game.rounds[game.currentRound].bids[game.rounds[game.currentRound].bids.length-1].suit;
+    game.rounds[game.currentRound].teamSpeaker = getTeam(game.rounds[game.currentRound].bids[game.rounds[game.currentRound].bids.length-1].username, game.team);
+  }
+  return game;
+}
+
+function getTeam(username, team){
+  if(team.T1P1 === username || team.T1P2 === username) return 1;
+  if(team.T2P1 === username || team.T2P2 === username) return 2;
+}
+
+function saveRounds(game) {
+  const stmt2 = db.prepare('UPDATE contree SET rounds=? WHERE ident=?');
+  stmt2.run(JSON.stringify(game.rounds), game.ident);
+}
+
+function updatePlayer(game, player) {
+  game.player1 = JSON.parse(game.player1);
+  game.player2 = JSON.parse(game.player2);
+  game.player3 = JSON.parse(game.player3);
+  game.player4 = JSON.parse(game.player4);
+  if (game.player1.username === player.username) {
+    game.player1 = player;
+  } else if (game.player2.username === player.username) {
+    game.player2 = player;
+  } else if (game.player3.username === player.username) {
+    game.player3 = player;
+  } else if (game.player4.username === player.username) {
+    game.player4 = player;
+  }
+  game.player1 = JSON.stringify(game.player1);
+  game.player2 = JSON.stringify(game.player2);
+  game.player3 = JSON.stringify(game.player3);
+  game.player4 = JSON.stringify(game.player4);
+  const stmt1 = db.prepare('UPDATE contree SET player1=?, player2=?, player3=?, player4=? WHERE ident=?');
+  stmt1.run(game.player1, game.player2, game.player3, game.player4, game.ident);
+}
+
+function winnerOfFold(fold, asset){
+  let allCardsInt = [];
+  fold.forEach((card) => {
+    if (card.suit === asset.suit) { // Atout
+      switch (card.value) {
+        case 'V':
+          allCardsInt.push({value: 8, username: card.username});
+          break;
+        case 9:
+          allCardsInt.push({value: 7, username: card.username});
+          break;
+        case 'A':
+          allCardsInt.push({value: 6, username: card.username});
+          break;
+        case 10:
+          allCardsInt.push({value: 5, username: card.username});
+          break;
+        case 'K':
+          allCardsInt.push({value: 4, username: card.username});
+          break;
+        case 'Q':
+          allCardsInt.push({value: 3, username: card.username});
+          break;
+        case 8:
+          allCardsInt.push({value: 2, username: card.username});
+          break;
+        case 7:
+          allCardsInt.push({value: 1, username: card.username});
+          break;
+        default:
+          break;
+      }
+    } else {
+      switch (card.value) {
+        case 'A':
+          allCardsInt.push({value: 8, username: card.username});
+          break;
+        case 10:
+          allCardsInt.push({value: 7, username: card.username});
+          break;
+        case 'K':
+          allCardsInt.push({value: 6, username: card.username});
+          break;
+        case 'Q':
+          allCardsInt.push({value: 5, username: card.username});
+          break;
+        case 'V':
+          allCardsInt.push({value: 4, username: card.username});
+          break;
+        case 9:
+          allCardsInt.push({value: 3, username: card.username});
+          break;
+        case 8:
+          allCardsInt.push({value: 2, username: card.username});
+          break;
+        case 7:
+          allCardsInt.push({value: 1, username: card.username});
+          break;
+        default:
+          break;
+      }
+    }
+  });
+  allCardsInt.sort(function(a, b) { return a.value - b.value; });
+  allCardsInt.reverse();
+  const winner = allCardsInt[0].username;
+
+  let allPoints = [];
+  fold.forEach((card) =>{
+    if(card.suit === asset.suit){ // Atout
+      if(isNaN(card.value)){ // Si c'est une tête
+        switch (card.value) {
+          case 'V':
+            allPoints.push({value: 20, username: card.username});
+            break;
+          case 'A':
+            allPoints.push({value: 11, username: card.username});
+            break;
+          case 'K':
+            allPoints.push({value: 4, username: card.username});
+            break;
+          case 'Q':
+            allPoints.push({value: 3, username: card.username});
+            break;
+          default:
+            break;
+        }
+      } else if( card.value === 9) allPoints.push({value: 14, username: card.username});
+      else if ( card.value === 10) allPoints.push({value: 10, username: card.username});
+    } else { // Pas atout
+      if(isNaN(card.value)){ // Si c'est une tête
+        switch (card.value) {
+          case 'V':
+            allPoints.push({value: 2, username: card.username});
+            break;
+          case 'A':
+            allPoints.push({value: 11, username: card.username});
+            break;
+          case 'K':
+            allPoints.push({value: 4, username: card.username});
+            break;
+          case 'Q':
+            allPoints.push({value: 3, username: card.username});
+            break;
+          default:
+            break;
+        }
+      } else if( card.value === 10) allPoints.push({value: 10, username: card.username});
+    }
+  });
+  allPoints.sort(function(a, b) { return a.value - b.value; });
+  allPoints.reverse();
+  const points = allPoints.reduce(function(a, b){ return a.value + b.value; }, 0);
+  return {
+    username: winner,
+    points: points
+  };
 }
 
 server.listen(port, () => console.log(`Listening on port ${port}`));

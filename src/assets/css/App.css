@@ -1,11 +1,20 @@
 @import url('https://fonts.googleapis.com/css?family=Lato:400,700,900&display=swap');
+/* Général */
 html{
   background-color: #EEEEEE;
   transition: all 0.6s ease-out;
 }
-*{
+* {
   box-sizing: border-box;
   font-family: 'Lato', sans-serif;
+}
+*:not(input){
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 *:focus {
   outline: none;
@@ -19,7 +28,6 @@ html.black_bg{
 html.white_bg{
   background-color: #EEEEEE;
 }
-
 
 
 .box{
@@ -78,7 +86,7 @@ a.back div:hover{
 
 
 
-
+/* Menu */
 .box.menu{
   width: 30%;
 }
@@ -104,7 +112,7 @@ a.back div:hover{
 
 
 
-
+/**<- Contrée ->**/
 .box.contree{
   width: 30%;
 }
@@ -121,6 +129,7 @@ a.back div:hover{
   font-size: 18px;
   margin-top: 5px;
 }
+/* Contrée menu */
 .box.contree a div.create, .box.menu .game{
   background-color: #00A3EE;
 }
@@ -133,7 +142,7 @@ a.back div:hover{
 .box.contree a div.join:hover{
   background-color: #e6ca08;
 }
-
+/* Contrée création de partie */
 .box.contree.start form .private{
   font-size: 13px;
   font-style: italic;
@@ -157,6 +166,7 @@ a.back div:hover{
   cursor: not-allowed;
   background-color: darkgray;
 }
+/* Contrée rejoindre la partie */
 .box.contree.username form input[type='text']{
   padding: 8px 5px;
   width: 100%;
@@ -183,6 +193,7 @@ a.back div:hover{
 .box.contree.username #buttonCapacity .start{
   background-color: #D80351;
 }
+/* Contrée Salle du jeu */
 .box.contree.play{
   width: 95%;
   margin-top: 12vh;
@@ -218,7 +229,7 @@ a.back div:hover{
   font-size: 13px;
 }
 
-/* En attente des joueurs */
+/* Contrée En attente des joueurs */
 .box.contree.play #wait{
   margin: 0 auto;
   width: 100%;
@@ -251,7 +262,7 @@ a.back div:hover{
 }
 .box.contree.play #wait .players .player .avatar img{
   height: 100%;
-  border-radius: 100%;
+  border-radius: 8px;
 }
 .box.contree.play #wait .players .player .avatar img.load{
   height: 50%;
@@ -280,6 +291,7 @@ a.back div:hover{
   display: inline;
   line-height: 32px;
 }
+/* Contrée choix d'attribution des équipes */
 .box.contree.play #choices{
   width: 100%;
 }
@@ -295,6 +307,7 @@ a.back div:hover{
 .box.contree.play #choices .button.choice:hover{
   background-color: #c9034e;
 }
+/* Contrée équipe faite par le tirage des rois ----- A CHANGER */
 .box.contree.play #king_scene table{
   width: 100%;
 }
@@ -326,7 +339,7 @@ a.back div:hover{
 }
 .box.contree.play #king_scene table .players .player .avatar img{
   height: 100%;
-  border-radius: 100%;
+  border-radius: 8px;
 }
 .box.contree.play #king_scene table .player p:first-of-type{
   font-weight: initial;
@@ -346,14 +359,18 @@ a.back div:hover{
   height: 300px;
 }
 
-
+/* Contrée séléction du co-équipier */
 .box.contree.play #mates_scene .players{
   display: flex;
   flex-wrap: wrap;
-}.box.contree.play #mates_scene .players a {
+}.box.contree.play #mates_scene .players button {
    flex: 1 0 30%;
    width: 30%;
    margin: 1.5%;
+   -moz-appearance: none;
+   -webkit-appearance: none;
+   background: none;
+   border: none;
  }
 .box.contree.play #mates_scene .players .player:hover {
   cursor: pointer;
@@ -375,7 +392,7 @@ a.back div:hover{
 }
 .box.contree.play #mates_scene .players .player .avatar img{
   width: 100%;
-  border-radius: 100%;
+  border-radius: 8px;
 }
 .box.contree.play #mates_scene .players .player p.username{
   color: #FFF;
@@ -383,12 +400,15 @@ a.back div:hover{
   font-weight: normal;
   margin: 10px 0;
 }
-
-
+/* Contrée Vue du jeu */
+.box.contree.play #game_view{
+  transition: all .3s ease-out;
+}
 .box.contree.play #game_view .teams{
   display: flex;
   flex-wrap: wrap;
   margin-bottom: 10px;
+  position: relative;
 }
 .box.contree.play #game_view .teams .team{
   flex: 1 0 46%;
@@ -399,6 +419,7 @@ a.back div:hover{
   text-align: center;
   padding: 10px 15px;
   border-radius: 50px;
+  z-index: 10;
 }
 .box.contree.play #game_view .teams .team span{
   background-color: #FFF;
@@ -407,8 +428,25 @@ a.back div:hover{
   border-radius: 50px;
   margin-left: 10px;
 }
+.box.contree.play #game_view .teams .lastBid{
+  bottom: -34px;
+  margin: 0 0 0 44.1%;
+  border-radius: 0 0 8px 8px;
+  border-bottom: solid 2px rgba(0,0,0,0.2);
+  border-top: none !important;
+  z-index: 1;
+}
+.box.contree.play #game_view .teams .lastBid.T1{
+  margin: 0 0 0 22%;
+}
+.box.contree.play #game_view .teams .lastBid.T2{
+  margin: 0 0 0 74%;
+}
 .box.contree.play #game_view table{
   width: 100%;
+}
+.box.contree.play #game_view table tr td{
+  position: relative;
 }
 .box.contree.play #game_view table .player{
   text-align: center;
@@ -419,13 +457,19 @@ a.back div:hover{
   color: #FFF;
   width: 100%;
 }
+.box.contree.play #game_view table .current .player{
+  animation: pulse 1s infinite;
+  animation-timing-function: linear;
+  border: 2px solid #c9034e;
+
+}
 .box.contree.play #game_view table .player .avatar{
   width: 80px;
   margin: 5px auto 0;
 }
 .box.contree.play #game_view table .player .avatar img{
   width: 100%;
-  border-radius: 100%;
+  border-radius: 8px;
 }
 .box.contree.play #game_view table .player p.username{
   color: #FFF;
@@ -436,8 +480,12 @@ a.back div:hover{
 .box.contree.play #game_view .deck{
   list-style: none;
   margin: 0;
-  padding: 0;
   text-align: center;
+  padding: 0 70px 0 0;
+}
+.box.contree.play #game_view.me_round .deck{
+  animation: pulse 1s infinite;
+  animation-timing-function: linear;
 }
 .box.contree.play #game_view .deck li{
   display: inline-block;
@@ -449,8 +497,131 @@ a.back div:hover{
   position: absolute;
   transition: all .2s ease-out;
 }
-.box.contree.play #game_view .deck li .card:hover{
+.box.contree.play #game_view.me_round .deck li .card:hover{
   margin-top: -20px;
+  cursor: pointer;
+}
+.box.contree.play #game_view.me_round .deck .card{
+  border: 2px solid #c9034e;
+}
+.box.contree.play #game_view .bid{
+  width: 60%;
+  margin: 0 auto 20px;
+}
+.box.contree.play #game_view.me_bid .bid{
+  animation: pulse 1s infinite;
+  animation-timing-function: linear;
+}
+.box.contree.play #game_view .bid .colors{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+}
+.box.contree.play #game_view .bid .colors label{
+  width: 75px;
+}
+.box.contree.play #game_view .bid .colors label input{
+  display: none;
+}
+.box.contree.play #game_view .bid .colors label div{
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 30px;
+  height: 50px;
+  margin: 5px 10px;
+  border: solid 2px rgba(0,0,0,0.2);
+  border-radius: 5px;
+}
+.box.contree.play #game_view .bid .colors label input:checked ~ div{
+  border: solid 2px #c9034e;
+}
+.box.contree.play #game_view .bid .points{
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+}
+.box.contree.play #game_view .bid .points button{
+  flex: 1 0 auto;
+  margin: 5px 10px;
+  padding: 6px 10px;
+  text-align: center;
+  background-color: #FFF;
+  font-size: 20px;
+  border: solid 2px rgba(0,0,0,0.2);
+  border-radius: 5px;
+  font-weight: bold;
+  color: #000;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+.box.contree.play #game_view .bid button.pass{
+  flex: 1 0 auto;
+  margin: 5px 10px;
+  padding: 6px 10px;
+  text-align: center;
+  background-color: #eeeeee;
+  font-size: 20px;
+  border: solid 2px rgba(0,0,0,0.2);
+  border-radius: 5px;
+  font-weight: bold;
+  color: #000;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+}
+.box.contree.play #game_view .lastBid{
+  position: absolute;
+  margin: -34px 0 0 47%;
+  text-align: left;
+  padding: 5px 30px 5px 10px;
+  border-radius: 8px 8px 0 0;
+  border-top: solid 2px rgba(0,0,0,0.2);
+  background-color: #EEEEEE;
+  color: #000;
+  background-position: 80% center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  font-size: 18px;
+}
+.box.contree.play #game_view table tr td .lastBid{
+  margin: -34px 0 0 41%;
+}
+.box.contree.play #game_view table tr td .lastBid.mate{
+  margin: 0 0 0 44.1%;
+  border-radius: 0 0 8px 8px;
+  border-bottom: solid 2px rgba(0,0,0,0.2);
+  border-top: none !important;
+  z-index: 1;
+}
+
+.box.contree.play #game_view .fake_card{
+  height: 200px;
+  width: 150px;
+  margin: 0 auto;
+}
+.box.contree.play #game_view .center{
+  width: 40%;
+}
+.box.contree.play #game_view .fold{
+  width: 330px;
+}
+.box.contree.play #game_view .fold ul{
+  width: 100%;
+  margin: auto auto auto 25%;
+}
+.box.contree.play #game_view .fold ul li{
+  display: inline-block;
+  margin-right: -5px;
+  height: 200px;
+  width: 60px;
+}
+
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
 }
 
 
@@ -468,31 +639,38 @@ a.back div:hover{
   background-repeat: no-repeat;
   background-size: 50%;
   box-shadow: 0 5px 15px 0 rgba(62, 57, 107, 0.2);
-  cursor: pointer;
+  cursor: default;
+  -moz-appearance: none;
+  -webkit-appearance: none;
 }
-.card.pique, .card.pique .topValue, .card.pique .bottomValue{
+.card.pique, .card.pique .topValue, .card.pique .bottomValue, .box.contree.play #game_view .bid .colors label div.pique, .box.contree.play #game_view .lastBid.pique{
   background-image: url("../img/pique.png");
 }
-.card.coeur, .card.coeur .topValue, .card.coeur .bottomValue{
+.card.coeur, .card.coeur .topValue, .card.coeur .bottomValue, .box.contree.play #game_view .bid .colors label div.coeur, .box.contree.play #game_view .lastBid.coeur{
   background-image: url("../img/coeur.png");
 }
-.card.trefle, .card.trefle .topValue, .card.trefle .bottomValue{
+.card.trefle, .card.trefle .topValue, .card.trefle .bottomValue, .box.contree.play #game_view .bid .colors label div.trefle, .box.contree.play #game_view .lastBid.trefle{
   background-image: url("../img/trefle.png");
 }
-.card.carreau, .card.carreau .topValue, .card.carreau .bottomValue{
+.card.carreau, .card.carreau .topValue, .card.carreau .bottomValue, .box.contree.play #game_view .bid .colors label div.carreau, .box.contree.play #game_view .lastBid.carreau{
   background-image: url("../img/carreau.png");
 }
 .card .topValue{
+  position: absolute;
+  top: 6px;
+  width: 120px;
   text-align: left;
   background-position: right center;
   background-repeat: no-repeat;
   background-size: 16px;
+  left: 12px;
 }
 .card .bottomValue{
   position: absolute;
-  bottom: 10px;
+  bottom: 6px;
+  left: 12px;
   text-align: right;
-  width: 124px;
+  width: 120px;
   background-position: left center;
   background-repeat: no-repeat;
   background-size: 16px;

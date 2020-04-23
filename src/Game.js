@@ -17,28 +17,28 @@ class Game {
         deck: []
     };
     player2 = {
-        username: 'test1',
-        IP: '1',
-        choice: 'mates',
+        username: 'marie',
+        IP: '2',
+        choice: 'king',
         deck: []
     };
     player3 = {
-        username: 'test2',
-        IP: '2',
-        choice: 'mates',
+        username: 'martin',
+        IP: '3',
+        choice: 'king',
         deck: []
     };
     player4 = {
-        username: 'test3',
-        IP: '3',
-        choice: 'mates',
+        username: 'lucas',
+        IP: '4',
+        choice: 'king',
         deck: []
     };
     team = {
         T1P1: '',
-        T1P2: 'test1',
-        T2P1: 'test2',
-        T2P2: 'test3'
+        T1P2: 'marie',
+        T2P1: 'martin',
+        T2P2: 'lucas'
     };
     isTeamSet = false;
     startDeck = [];
@@ -89,6 +89,29 @@ class Game {
         this.team.T2P1 = adv1;
         this.team.T2P2 = adv2;
         socket.emit('set-team', this.ident, this.team);
+    }
+    newBid(){
+        socket.emit('new-bid', this.ident, this.rounds);
+    }
+
+    getLastBid(username){
+        let lastBid = null;
+        this.rounds[this.currentRound].bids.forEach((bid) => {
+            if(bid.username === username){ lastBid = bid; }
+        });
+        return lastBid;
+    }
+    passBid(){
+        socket.emit('pass-bid', this.ident);
+    }
+    cardPlayed(player){
+        socket.emit('card-played', this.ident, player, this.rounds);
+    }
+    cardPlayedFrom(card, username){
+        socket.emit('card-played-from', this.ident, card, username);
+    }
+    sendUpdateNeeded(){
+        socket.emit('get-game', this.ident);
     }
 
 

@@ -6,6 +6,7 @@ import load from './assets/img/load.gif';
 import { Game } from './Game';
 import './assets/css/App.css';
 import './assets/css/FontAwesome.css';
+import './assets/css/Animate.css';
 
 class App extends Component {
 	render() {
@@ -225,7 +226,8 @@ class ContreePlay extends React.Component {
 		this.state = {
 			ident: this.props.match.params.ident,
 			game: new Game(this.props.match.params.ident, null, null),
-			currentPlayer: undefined
+			currentPlayer: undefined,
+			lastUpdate: null
 		};
 		this.handleLiveGame = this.handleLiveGame.bind(this);
 		this.handleCurrentPlayer = this.handleCurrentPlayer.bind(this);
@@ -233,18 +235,22 @@ class ContreePlay extends React.Component {
 		this.chooseKing = this.chooseKing.bind(this);
 		this.chooseMate = this.chooseMate.bind(this);
 		this.setTeam = this.setTeam.bind(this);
-		this.test = this.test.bind(this);
+		this.handleBid = this.handleBid.bind(this);
+		this.handlePassBid = this.handlePassBid.bind(this);
+		this.handleCard = this.handleCard.bind(this);
 	}
 	componentDidMount(){
 		this.state.game.populate(this.handleLiveGame);
 		this.state.game.onUpdate(this.handleLiveGame);
 		this.state.game.getCurrentPlayer(this.handleCurrentPlayer);
+		setInterval(() => this.checkIfNoUpdate(), 5000);
 		document.title = "Contrée - Partie #"+this.state.game.ident;
 		document.querySelector('html').classList.remove("white_bg");
 		document.querySelector('html').classList.add("black_bg");
 		document.querySelector('.logo img').setAttribute("src", logoWhite);
 	}
 	handleLiveGame(game){
+		this.setState(() => ({lastUpdate: Date.now()}));
 		if(game.ident === this.state.ident) {
 			game.team = JSON.parse(game.team);
 			game.isTeamSet = JSON.parse(game.isTeamSet);
@@ -257,6 +263,13 @@ class ContreePlay extends React.Component {
 			this.setState((state) => ({game: Object.assign(state.game, game)}));
 		}
 		if (this.state.game.ident !== this.state.ident) this.props.history.replace('/Contree');
+	}
+	checkIfNoUpdate(){
+		const date = new Date();
+		if(date - this.state.lastUpdate > 10*1000){
+			console.log('update needed');
+			this.state.game.sendUpdateNeeded();
+		}
 	}
 	handleCurrentPlayer(player){
 		this.setState((state, props) => ({ currentPlayer: player }));
@@ -317,12 +330,12 @@ class ContreePlay extends React.Component {
 	}
 
 	chooseKing(){
-		this.state.game.setChoice(this.handleLiveGame, this.handleCurrentPlayer, 'king', this.state.currentPlayer.username);
 		document.querySelector('#choices').remove();
+		this.state.game.setChoice(this.handleLiveGame, this.handleCurrentPlayer, 'king', this.state.currentPlayer.username);
 	}
 	chooseMate(){
-		this.state.game.setChoice(this.handleLiveGame, this.handleCurrentPlayer, 'mates', this.state.currentPlayer.username);
 		document.querySelector('#choices').remove();
+		this.state.game.setChoice(this.handleLiveGame, this.handleCurrentPlayer, 'mates', this.state.currentPlayer.username);
 	}
 	watingView(){
 		if( (this.state.game.player1 && this.state.game.player1.choice && this.state.game.player2 && this.state.game.player2.choice && this.state.game.player3 && this.state.game.player3.choice && this.state.game.player4 && this.state.game.player4.choice) || this.state.game.isTeamSet ) return '';
@@ -373,13 +386,13 @@ class ContreePlay extends React.Component {
 	}
 	choiceView(){
 		if(this.state.game.player1 && this.state.game.player1.choice && this.state.game.player2 && this.state.game.player2.choice && this.state.game.player3 && this.state.game.player3.choice && this.state.game.player4 && this.state.game.player4.choice && !this.state.game.isTeamSet){
-			const choice = {value: 'mates', title: 'Séléctionnez votre équipier'}; //{value: 'king', title: 'king'}; //this.state.game.getChoice();
+			const choice = this.state.game.getChoice(); //{value: 'mates', title: 'Séléctionnez votre équipier'}; //{value: 'king', title: 'king'}; //
 			const me = this.getMate('me');
 			const mate = this.getMate('mate');
 			const adv1 = this.getMate('first');
 			const adv2 = this.getMate('second');
 			let scene;
-			if(choice.value === 'king') scene = this.choiceKingScene(me, mate, adv1, adv2);
+			//if(choice.value === 'king') scene = this.choiceKingScene(me, mate, adv1, adv2); Pas d'animation pour le moment
 			if(choice.value === 'mates') scene = this.choiceMatesScene(me, mate, adv1, adv2);
 			return(
 				<div id="choice">
@@ -389,34 +402,6 @@ class ContreePlay extends React.Component {
 			);
 		} else return '';
 	}
-
-	choiceKingScene(me, mate, adv1, adv2){
-		return (
-			<div id="king_scene">
-				<table>
-					<tbody>
-					<tr>
-						<td className="box_player">
-							<div className="players">
-								<p>Équipe 1</p>
-								<Player user={me} />
-								<Player user={mate} />
-							</div>
-						</td>
-						<td className="box_player">
-							<div className="players">
-								<p>Équipe 2</p>
-								<Player user={adv1} />
-								<Player user={adv2} />
-							</div>
-						</td>
-					</tr>
-					</tbody>
-				</table>
-			</div>
-		);
-	}
-
 	setTeam(me, mate, adv1, adv2){
 		this.state.game.setTeam(me, mate, adv1, adv2);
 	}
@@ -424,15 +409,15 @@ class ContreePlay extends React.Component {
 		return(
 			<div id="mates_scene">
 				<div className="players">
-					<a href="#" onClick={() => {this.setTeam(me.username, mate.username, adv1.username, adv2.username)}}>
+					<button onClick={() => {this.setTeam(me.username, mate.username, adv1.username, adv2.username)}}>
 						<Player user={mate} />
-					</a>
-					<a href="#" onClick={() => {this.setTeam(me.username, adv1.username, mate.username, adv2.username)}}>
+					</button>
+					<button onClick={() => {this.setTeam(me.username, adv1.username, mate.username, adv2.username)}}>
 						<Player user={adv1} />
-					</a>
-					<a href="#" onClick={() => {this.setTeam(me.username, adv2.username, adv1.username, mate.username)}}>
+					</button>
+					<button onClick={() => {this.setTeam(me.username, adv2.username, adv1.username, mate.username)}}>
 						<Player user={adv2} />
-					</a>
+					</button>
 				</div>
 			</div>
 		);
@@ -443,31 +428,63 @@ class ContreePlay extends React.Component {
 		const mate = this.getMate('mate');
 		const adv1 = this.getMate('first');
 		const adv2 = this.getMate('second');
-		const myPoints = 0;
-		const theirPoints = 0;
+		const [myPoints, theirPoints] = this.getPoints('mine', me.username);
+		if(!this.state.game.rounds[this.state.game.currentRound].isBidOver){
+			me.lastBid = this.state.game.getLastBid(me.username);
+			mate.lastBid = this.state.game.getLastBid(mate.username);
+			adv1.lastBid = this.state.game.getLastBid(adv1.username);
+			adv2.lastBid = this.state.game.getLastBid(adv2.username);
+		}
 		return(
-			<div id="game_view">
-				<Teams me={me.username} mate={mate.username} adv1={adv1.username} adv2={adv2.username} myPoints={myPoints} theirPoints={theirPoints} />
+			<div id="game_view" className={(this.state.game.rounds[this.state.game.currentRound].currentSpeaker === me.username && !this.state.game.rounds[this.state.game.currentRound].isBidOver)? 'me_bid': (this.state.game.rounds[this.state.game.currentRound].currentSpeaker === me.username && this.state.game.rounds[this.state.game.currentRound].isBidOver)? 'me_round': ''}>
+				<Teams me={me.username} mate={mate.username} adv1={adv1.username} adv2={adv2.username} myPoints={myPoints} theirPoints={theirPoints} current={this.state.game.currentPlayer} teamSpeaker={this.state.game.rounds[this.state.game.currentRound].teamSpeaker} teamSpeakerBid={{suit: this.state.game.rounds[this.state.game.currentRound].asset.suit, points: this.state.game.rounds[this.state.game.currentRound].asset.points}}/>
 				<table>
 					<tbody>
 					<tr>
 						<td />
-						<td><Player user={mate} /></td>
+						<td className={(this.state.game.rounds[this.state.game.currentRound].currentSpeaker === mate.username)? 'current': ''}><Player user={mate} />{(mate.lastBid)? <LastBidMate bid={mate.lastBid} />: ''}</td>
 						<td />
 					</tr>
 					<tr>
-						<td><Player user={adv1} /></td>
-						<td></td>
-						<td><Player user={adv2} /></td>
+						<td className={(this.state.game.rounds[this.state.game.currentRound].currentSpeaker === adv1.username)? 'current': ''}>{(adv1.lastBid)? <LastBid bid={adv1.lastBid} />: ''}<Player user={adv1} /></td>
+						<td className="center">{(!this.state.game.rounds[this.state.game.currentRound].isBidOver)? <h2 className="fake_card">Choix de l'atout</h2> : <BeautifyFold fold={this.state.game.rounds[this.state.game.currentRound].folds[this.state.game.rounds[this.state.game.currentRound].currentFold]} />}</td>
+						<td className={(this.state.game.rounds[this.state.game.currentRound].currentSpeaker === adv2.username)? 'current': ''}>{(adv2.lastBid)? <LastBid bid={adv2.lastBid} />: ''}<Player user={adv2} /></td>
 					</tr>
 					</tbody>
 				</table>
-			<BeautifyDeck handleClick={this.test} cards={me.deck} />
+				{(!this.state.game.rounds[this.state.game.currentRound].isBidOver && this.state.game.rounds[this.state.game.currentRound].currentSpeaker === me.username)? <Bid min={(this.state.game.rounds[this.state.game.currentRound].bids.length > 0)? this.state.game.rounds[this.state.game.currentRound].bids[this.state.game.rounds[this.state.game.currentRound].bids.length-1].points : 70} handleBid={this.handleBid} handlePass={this.handlePassBid} /> : ''}
+				{(me.lastBid)? <LastBid bid={me.lastBid} />: ''}
+				<BeautifyDeck handleClick={this.handleCard} cards={me.deck} />
 			</div>
 		);
 	}
-	test(){
-		alert('test');
+	getPoints(who, me){
+		if(who === 'mine'){
+			if(me === this.state.game.team.T1P1 || me === this.state.game.team.T1P2){
+				return [this.state.game.pointsT1, this.state.game.pointsT2];
+			} else {
+				return [this.state.game.pointsT2, this.state.game.pointsT1];
+			}
+		}
+		return [0, 0];
+	}
+	handleBid(points){
+		const color = document.querySelector('.bid .colors input[name=color]:checked');
+		if(color && this.state.game.rounds[this.state.game.currentRound].currentSpeaker === this.state.currentPlayer.username){
+			this.state.game.rounds[this.state.game.currentRound].bids.push({points: points, suit: color.value, username: this.state.currentPlayer.username});
+			this.state.game.newBid();
+			console.log(points, color.value);
+			document.querySelector('.me_bid').classList.remove('me_bid');
+			animateCSS('.bid', 'fadeOutDown', function() { document.querySelector('.bid').remove(); });
+		}
+	}
+	handlePassBid(){
+		if(this.state.game.rounds[this.state.game.currentRound].currentSpeaker === this.state.currentPlayer.username){
+			this.state.game.passBid();
+		}
+	}
+	handleCard(card){
+		this.state.game.cardPlayedFrom(card, this.state.currentPlayer.username);
 	}
 	render()  {
 		console.log('JEU', this.state.game);
@@ -498,15 +515,30 @@ const InputShareLink = ({ link }) => <div className="shareInput">Inviter <i clas
 
 const Player = ({user}) => <div className="player"><div className="avatar"><Avatar username={user.username}/></div><p className="username">{user.username}</p></div>;
 
-const Avatar = ({username}) => (username)? <img alt={`Avatar de ${username}`} src={`https://avatars.dicebear.com/v2/avataaars/${username}.svg?options[mouth][]=twinkle&options[eyes][]=squint&options[background]=%23FFFFFF`} /> : <img className="load" alt="En attente" src={load} />;
+const Avatar = ({username}) => (username)? <img alt={`Avatar de ${username}`} src={`https://api.adorable.io/avatars/285/${username}`} /> : <img className="load" alt="En attente" src={load} />;
 
-const Card = ({handleClick, card}) => (card)? <div onClick={handleClick} className={`card ${card.suit}`}><div className="topValue">{card.value}</div><div className="bottomValue">{card.value}</div></div> : '';
+const Card = ({handleClick, card}) => (card)? <button onClick={() => handleClick(card)} className={`card ${card.suit}`}><div className="topValue">{card.value}</div><div className="bottomValue">{card.value}</div></button> : '';
 
 const BeautifyDeck = ({handleClick, cards}) => (cards)? <ul className="deck"><Deck handleClick={handleClick} cards={cards} /></ul> : null;
 
 const Deck = ({handleClick, cards}) => cards.map((card) => <li><Card handleClick={handleClick} card={card} /></li> );
 
-const Teams = ({me, mate, adv1, adv2, myPoints, theirPoints}) => <div className="teams"><div className="team">{me} - {mate} <span>{myPoints}</span></div><div className="team">{adv1} - {adv2}<span>{theirPoints}</span></div></div>;
+const Teams = ({me, mate, adv1, adv2, myPoints, theirPoints, current, teamSpeaker, teamSpeakerBid}) => <div className="teams"><div className="team">{me} - {mate} <span>{myPoints}</span></div><div className="team">{adv1} - {adv2}<span>{theirPoints}</span></div>{(teamSpeaker > 0)?<LastBidMate bid={teamSpeakerBid} classNameMore={`T${teamSpeaker}`} />: ''}</div>;
+
+const Bid = ({min, handleBid, handlePass}) => <div className="bid"><h2>À votre tour de parler</h2><Colors /><div className="points"><BidPoints min={min} handleBid={handleBid} /><button className="pass" onClick={handlePass}>Passer</button></div></div>;
+
+const BidPoints = ({min, handleBid}) => [80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180].map((points) => (points > min)? <button onClick={() => handleBid(points)}>{points}</button> : '' );
+
+const Colors = () => <div className="colors"><label><input type="radio" name="color" value="trefle" /><div className="trefle" /></label><label><input type="radio"  name="color" value="pique" /><div className="pique" /></label><label><input type="radio" name="color" value="carreau" /><div className="carreau" /></label><label><input type="radio" name="color" value="coeur" /><div className="coeur" /></label></div>
+
+const LastBid = ({bid}) => <div className={`lastBid ${bid.suit} fadeInUp animated`}>{bid.points}</div>;
+
+const LastBidMate = ({bid, classNameMore}) => <div className={`lastBid ${bid.suit} mate ${classNameMore} fadeInDown animated`}>{bid.points}</div>;
+
+const BeautifyFold = ({fold}) => (fold.length > 0)? <div className="fold"><ul><Fold cards={fold}/></ul></div>: <div className="fake_card" />;
+
+const Fold = ({cards}) => cards.map((card) => <li><Card handleClick={null} card={card.card} /></li> );
+
 
 /**
  * @return {null}
@@ -515,6 +547,17 @@ function ChoiceFlag({user}){
 	if(user.choice === 'king') return <div className="choose">Veut tirer les rois</div>;
 	else if(user.choice === 'mates') return <div className="choose">Veut chosir</div>;
 	return null;
+}
+
+function animateCSS(element, animationName, callback) {
+	const node = document.querySelector(element);
+	node.classList.add('animated', animationName);
+	function handleAnimationEnd() {
+		node.classList.remove('animated', animationName);
+		node.removeEventListener('animationend', handleAnimationEnd);
+		if (typeof callback === 'function') callback();
+	}
+	node.addEventListener('animationend', handleAnimationEnd);
 }
 
 export default App;
