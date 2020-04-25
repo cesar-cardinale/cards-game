@@ -149,7 +149,6 @@ class ContreeJoin extends React.Component {
 	}
 
 	handleAllGames(allGames) {
-		console.log(allGames);
 		if(allGames.length > 0) this.setState((state, props) => ({games: allGames}));
 	}
 	handleRedirect(ident){
@@ -206,8 +205,10 @@ class ContreeUsername extends React.Component {
 	}
 
 	handlePlayerIsAlreadyInGame(player){
-		if(player !== null && this.props.history.action === 'POP') this.props.history.replace('/Contree/Play/'+this.state.game.ident);
-		document.location.reload(true);
+		if(player !== null && this.props.history.action === 'POP'){
+			this.props.history.replace('/Contree/Play/'+this.state.game.ident);
+			document.location.reload(true);
+		}
 	}
 
 	handleChange(event) {
