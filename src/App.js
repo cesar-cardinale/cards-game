@@ -4,6 +4,8 @@ import logo from './assets/img/logo.png';
 import logoWhite from './assets/img/logo_w.png';
 import load from './assets/img/load.gif';
 import { Game } from './Game';
+import useWindowDimensions from './hooks/useWindowDimensions';
+import Confetti from 'react-confetti'
 import './assets/css/App.css';
 import './assets/css/FontAwesome.css';
 import './assets/css/Animate.css';
@@ -15,6 +17,7 @@ class App extends Component {
 				<Route exact path="/" component={Menu}/>
 				<Route exact path="/Contree" component={ContreeMenu}/>
 				<Route exact path="/Contree/Start" component={ContreeStart}/>
+				<Route exact path="/Contree/Join" component={ContreeJoin}/>
 				<Route exact path="/Contree/Join/:ident" component={ContreeUsername}/>
 				<Route exact path="/Contree/Play/:ident" component={ContreePlay}/>
 			</BrowserRouter>
@@ -131,6 +134,45 @@ class ContreeStart extends React.Component {
 	}
 }
 
+class ContreeJoin extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = {games: []};
+
+		this.handleAllGames = this.handleAllGames.bind(this);
+		this.handleRedirect = this.handleRedirect.bind(this);
+	}
+	componentDidMount(){
+		document.title = "Contrée - Rejoindre";
+		document.querySelector('html').classList.add("white_bg");
+		Game.getAllGamesJoinable(this.handleAllGames);
+	}
+
+	handleAllGames(allGames) {
+		console.log(allGames);
+		if(allGames.length > 0) this.setState((state, props) => ({games: allGames}));
+	}
+	handleRedirect(ident){
+		const link = '/Contree/Join/'+ident;
+		this.props.history.replace(link);
+		document.location.reload(true);
+	}
+	render()  {
+		return (
+			<div className="box contree join">
+				<Logo />
+				<h2>Contrée</h2>
+				<div className="sep"/>
+				<BackButton link="/Contree"/>
+				<h3>Rejoindre une partie</h3>
+				<ul>
+					<GamesList games={this.state.games} handleRedirect={this.handleRedirect}/>
+				</ul>
+			</div>
+		);
+	}
+}
+
 class ContreeUsername extends React.Component {
 	constructor(props) {
 		super(props);
@@ -143,7 +185,7 @@ class ContreeUsername extends React.Component {
 		};
 
 		this.handleLiveGame = this.handleLiveGame.bind(this);
-		this.handleCurrentPlayer = this.handleCurrentPlayer.bind(this);
+		this.handlePlayerIsAlreadyInGame = this.handlePlayerIsAlreadyInGame.bind(this);
 		this.handleChange = this.handleChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
 	}
@@ -151,7 +193,7 @@ class ContreeUsername extends React.Component {
 		document.title = "Contrée - Partie #"+this.state.game.ident;
 		document.querySelector('html').classList.add("white_bg");
 		this.state.game.populate( this.handleLiveGame );
-		this.state.game.getCurrentPlayer(this.handleCurrentPlayer);
+		this.state.game.getCurrentPlayer(this.handlePlayerIsAlreadyInGame);
 	}
 	handleLiveGame(game){
 		this.setState((state) => ({game: Object.assign(state.game, game)}) );
@@ -163,8 +205,9 @@ class ContreeUsername extends React.Component {
 		if(this.state.game.ident !== this.state.ident) this.props.history.replace('/Contree');
 	}
 
-	handleCurrentPlayer(player){
+	handlePlayerIsAlreadyInGame(player){
 		if(player !== null && this.props.history.action === 'POP') this.props.history.replace('/Contree/Play/'+this.state.game.ident);
+		document.location.reload(true);
 	}
 
 	handleChange(event) {
@@ -247,7 +290,7 @@ class ContreePlay extends React.Component {
 		document.title = "Contrée - Partie #"+this.state.game.ident;
 		document.querySelector('html').classList.remove("white_bg");
 		document.querySelector('html').classList.add("black_bg");
-		document.querySelector('.logo img').setAttribute("src", logoWhite);
+		if(document.querySelector('.logo img')) document.querySelector('.logo img').setAttribute("src", logoWhite);
 	}
 	handleLiveGame(game){
 		this.setState(() => ({lastUpdate: Date.now()}));
@@ -260,6 +303,7 @@ class ContreePlay extends React.Component {
 			game.player4 = JSON.parse(game.player4);
 			game.startDeck = JSON.parse(game.startDeck);
 			game.rounds = JSON.parse(game.rounds);
+			game.isFinished = JSON.parse(game.isFinished);
 			this.setState((state) => ({game: Object.assign(state.game, game)}));
 		}
 		if (this.state.game.ident !== this.state.ident) this.props.history.replace('/Contree');
@@ -272,15 +316,10 @@ class ContreePlay extends React.Component {
 		}
 	}
 	handleCurrentPlayer(player){
-		this.setState((state, props) => ({ currentPlayer: player }));
-		this.checkIfFull();
-		if(this.state.currentPlayer === null && this.props.history.action === 'POP') this.props.history.replace('/Contree/Join/'+this.state.game.ident);
-	}
-	checkIfFull(){
-		if(this.state.game.player1 && this.state.game.player2 && this.state.game.player3 && this.state.game.player4 && !this.state.game.isTeamSet){
-			if(document.querySelector('#wait h2')) document.querySelector('#wait h2').textContent = 'Choix des équipes';
-			if(!this.state.currentPlayer.choice && document.querySelector('#choice'))  document.querySelector('#choice').style.display = 'block';
+		if(player) {
+			this.setState((state, props) => ({currentPlayer: player}));
 		}
+		if(this.state.currentPlayer === null && this.props.history.action === 'POP') this.props.history.replace('/Contree/Join/'+this.state.game.ident);
 	}
 	getMate(place){
 		if(this.state.currentPlayer !== null && this.state.currentPlayer !== undefined && place === 'me'){
@@ -423,7 +462,7 @@ class ContreePlay extends React.Component {
 		);
 	}
 	gameView(){
-		if( !this.state.game.player1 || !this.state.game.player2 || !this.state.game.player3 || !this.state.game.player4 || !this.state.game.isTeamSet ) return '';
+		if( !this.state.game.player1 || !this.state.game.player2 || !this.state.game.player3 || !this.state.game.player4 || !this.state.game.isTeamSet || this.state.game.isFinished ) return '';
 		const me = this.getMate('me');
 		const mate = this.getMate('mate');
 		const adv1 = this.getMate('first');
@@ -443,7 +482,7 @@ class ContreePlay extends React.Component {
 					<tr>
 						<td />
 						<td className={(this.state.game.rounds[this.state.game.currentRound].currentSpeaker === mate.username)? 'current': ''}><Player user={mate} />{(mate.lastBid)? <LastBidMate bid={mate.lastBid} />: ''}</td>
-						<td />
+						<td>{(this.state.game.rounds[this.state.game.currentRound].currentFold > 0)? <BeautifyFold fold={this.state.game.rounds[this.state.game.currentRound].folds[this.state.game.rounds[this.state.game.currentRound].currentFold-1]} /> : ''}</td>
 					</tr>
 					<tr>
 						<td className={(this.state.game.rounds[this.state.game.currentRound].currentSpeaker === adv1.username)? 'current': ''}>{(adv1.lastBid)? <LastBid bid={adv1.lastBid} />: ''}<Player user={adv1} /></td>
@@ -454,7 +493,7 @@ class ContreePlay extends React.Component {
 				</table>
 				{(!this.state.game.rounds[this.state.game.currentRound].isBidOver && this.state.game.rounds[this.state.game.currentRound].currentSpeaker === me.username)? <Bid min={(this.state.game.rounds[this.state.game.currentRound].bids.length > 0)? this.state.game.rounds[this.state.game.currentRound].bids[this.state.game.rounds[this.state.game.currentRound].bids.length-1].points : 70} handleBid={this.handleBid} handlePass={this.handlePassBid} /> : ''}
 				{(me.lastBid)? <LastBid bid={me.lastBid} />: ''}
-				<BeautifyDeck handleClick={this.handleCard} cards={me.deck} />
+				<BeautifyDeck handleClick={this.handleCard} cards={this.state.game.sortMyDeck(me.deck, this.state.game.rounds[this.state.game.currentRound].asset)} />
 			</div>
 		);
 	}
@@ -486,10 +525,41 @@ class ContreePlay extends React.Component {
 	handleCard(card){
 		this.state.game.cardPlayedFrom(card, this.state.currentPlayer.username);
 	}
+	gameFinishedView(){
+		let winner = '{error}';
+		let looser = '{error}';
+		let pointsWinner = 0;
+		let pointsLooser = 0;
+		if(this.state.game.pointsT1 >= this.state.game.maxPoints){
+			winner = this.state.game.team.T1P1+' & '+this.state.game.team.T1P2;
+			looser = this.state.game.team.T2P1+' & '+this.state.game.team.T2P2;
+			pointsWinner = this.state.game.pointsT1;
+			pointsLooser = this.state.game.pointsT2;
+		} else if(this.state.game.pointsT2 >= this.state.game.maxPoints){
+			winner = this.state.game.team.T2P1+' & '+this.state.game.team.T2P2;
+			looser = this.state.game.team.T1P1+' & '+this.state.game.team.T1P2;
+			pointsWinner = this.state.game.pointsT2;
+			pointsLooser = this.state.game.pointsT1;
+		}
+		const button = <button onClick={this.props.history.replace('/Contree')} className={`button returnToMenu`}>Retour au menu</button>;
+		return (
+			<div className="finished">
+				<ConfettiSet />
+				<div className="box">
+					<div className="logoBlack"><a href="/"><img src={logo} alt="logo"/></a></div>
+					<h2>Bravo à {winner}</h2>
+					<h3>contre {looser}</h3>
+					<div><span className="winner">{pointsWinner}</span> à <span className="looser">{pointsLooser}</span></div>
+					{button}
+				</div>
+			</div>
+		);
+	}
 	render()  {
 		console.log('JEU', this.state.game);
+		if(this.state.game.isFinished) return( this.gameFinishedView() );
 		return (
-			<div className="box contree play">
+			<div className='box contree play'>
 				<Logo />
 				<h2>Contrée - Partie #{this.state.game.ident}</h2>
 				<div className="sep"/>
@@ -521,13 +591,13 @@ const Card = ({handleClick, card}) => (card)? <button onClick={() => handleClick
 
 const BeautifyDeck = ({handleClick, cards}) => (cards)? <ul className="deck"><Deck handleClick={handleClick} cards={cards} /></ul> : null;
 
-const Deck = ({handleClick, cards}) => cards.map((card) => <li><Card handleClick={handleClick} card={card} /></li> );
+const Deck = ({handleClick, cards}) => cards.map((card) => <li key={`${card.suit.toString()}_${card.value.toString()}`}><Card handleClick={handleClick} card={card} /></li> );
 
 const Teams = ({me, mate, adv1, adv2, myPoints, theirPoints, current, teamSpeaker, teamSpeakerBid}) => <div className="teams"><div className="team">{me} - {mate} <span>{myPoints}</span></div><div className="team">{adv1} - {adv2}<span>{theirPoints}</span></div>{(teamSpeaker > 0)?<LastBidMate bid={teamSpeakerBid} classNameMore={`T${teamSpeaker}`} />: ''}</div>;
 
 const Bid = ({min, handleBid, handlePass}) => <div className="bid"><h2>À votre tour de parler</h2><Colors /><div className="points"><BidPoints min={min} handleBid={handleBid} /><button className="pass" onClick={handlePass}>Passer</button></div></div>;
 
-const BidPoints = ({min, handleBid}) => [80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180].map((points) => (points > min)? <button onClick={() => handleBid(points)}>{points}</button> : '' );
+const BidPoints = ({min, handleBid}) => [80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180].map((points) => (points > min)? <button key={points.toString()} onClick={() => handleBid(points)}>{points}</button> : '' );
 
 const Colors = () => <div className="colors"><label><input type="radio" name="color" value="trefle" /><div className="trefle" /></label><label><input type="radio"  name="color" value="pique" /><div className="pique" /></label><label><input type="radio" name="color" value="carreau" /><div className="carreau" /></label><label><input type="radio" name="color" value="coeur" /><div className="coeur" /></label></div>
 
@@ -539,6 +609,14 @@ const BeautifyFold = ({fold}) => (fold.length > 0)? <div className="fold"><ul><F
 
 const Fold = ({cards}) => cards.map((card) => <li><Card handleClick={null} card={card.card} /></li> );
 
+const ConfettiSet = () => {
+	const { height, width } = useWindowDimensions();
+	return (<Confetti width={width} height={height} />);
+}
+
+const GamesList = ({games, handleRedirect}) => (games.length > 0)? games.map((game) => <li key={game.ident}><button onClick={() => handleRedirect(game.ident)}>
+	<i className="fas fa-sign-in" /> #{game.ident} <div className="players">{[game.player1, game.player2, game.player3, game.player4].filter( (el) => el !== null ).length}
+	<i className="fas fa-users" /></div></button></li> ) : '';
 
 /**
  * @return {null}

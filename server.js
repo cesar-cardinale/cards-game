@@ -15,10 +15,20 @@ if (process.env.NODE_ENV === 'production') {
 
 io.on('connection', (client) => {
   // Ajout du nouveau jeu dans la database
+
+  /*
   client.on('add-game', (game) => {
     const stmt = db.prepare('INSERT INTO contree (ident, isPrivate, maxPoints, player2, player3, player4, team) VALUES (?, ?, ?, ?, ?, ?, ?)');
     const isPrivate = (game.isPrivate)? 'true' : 'false';
     stmt.run(game.ident, isPrivate, game.maxPoints, JSON.stringify(game.player2), JSON.stringify(game.player3), JSON.stringify(game.player4), JSON.stringify(game.team));
+    console.log('[!]#'+chalk.greenBright.bold(game.ident)+' added');
+  });
+  */
+
+  client.on('add-game', (game) => {
+    const stmt = db.prepare('INSERT INTO contree (ident, isPrivate, maxPoints, team) VALUES (?, ?, ?, ?)');
+    const isPrivate = (game.isPrivate)? 'true' : 'false';
+    stmt.run(game.ident, isPrivate, game.maxPoints, JSON.stringify(game.team));
     console.log('[!]#'+chalk.greenBright.bold(game.ident)+' added');
   });
 
@@ -26,6 +36,14 @@ io.on('connection', (client) => {
     const stmt = db.prepare('SELECT * FROM contree WHERE ident=? LIMIT 1');
     const game = stmt.get(ident);
     client.emit('update-game', game);
+  });
+
+  client.on('get-all-games', () => {
+    const stmt = db.prepare('SELECT * FROM contree WHERE isPrivate=\'false\' AND isTeamSet=\'false\'');
+    const allGames = stmt.all();
+    allGames.filter(game => (game.isTeamSet === 'false' && game.isPrivate === 'false'));
+    client.emit('all-games', allGames);
+    console.log(chalk.yellow('[!] Get All Games Joinable'));
   });
 
   client.on('add-mate', (ident, username) => {
@@ -61,6 +79,12 @@ io.on('connection', (client) => {
         stmt1.run(JSON.stringify(player), ident);
         team.T2P2 = username;
         console.log('[!]#' + chalk.greenBright.bold(game.ident), '[ADD P4]', username);
+      }
+      if(!game.currentPlayer){
+        game.currentPlayer = username;
+        const stmt1 = db.prepare('UPDATE contree SET currentPlayer=? WHERE ident=?');
+        stmt1.run(game.currentPlayer, ident);
+        console.log('[!]#' + chalk.greenBright.bold(game.ident), '[CURRENT PLAYER]', username);
       }
       stmtTeam.run(JSON.stringify(team), ident);
       game = stmt.get(ident);
@@ -98,7 +122,6 @@ io.on('connection', (client) => {
       game.player3 = JSON.parse(game.player3);
       game.player4 = JSON.parse(game.player4);
       game.team = JSON.parse(game.team);
-      console.log(game);
       if (game.player1 && game.player1.username === username) {
           game.player1.choice = choice;
           const stmt1 = db.prepare('UPDATE contree SET player1=? WHERE ident=?');
@@ -203,17 +226,18 @@ io.on('connection', (client) => {
       game.player3 = JSON.parse(game.player3);
       game.player4 = JSON.parse(game.player4);
       game.rounds = JSON.parse(game.rounds);
+      game.startDeck = JSON.parse(game.startDeck);
       game.team = JSON.parse(game.team);
-      if(game.rounds[this.state.game.currentRound].folds[this.state.game.rounds[this.state.game.currentRound].currentFold].length >= 4) {
-        const winner = winnerOfFold(game.rounds[this.state.game.currentRound].folds[this.state.game.rounds[this.state.game.currentRound].currentFold], game.rounds[this.state.game.currentRound].asset);
+      if(game.rounds[game.currentRound].folds[game.rounds[game.currentRound].currentFold].length >= 4) {
+        const winner = winnerOfFold(game.rounds[game.currentRound].folds[game.rounds[game.currentRound].currentFold], game.rounds[game.currentRound].asset);
         const teamWinner = getTeam(winner.username, game.team);
-        if(teamWinner === 1) game.rounds[this.state.game.currentRound].pointsT1 += winner.points;
-        if(teamWinner === 2) game.rounds[this.state.game.currentRound].pointsT2 += winner.points;
-        game.rounds[this.state.game.currentRound].currentPlayer = winner.username;
-        game.rounds[this.state.game.currentRound].currentFold += 1;
-        game.rounds[this.state.game.currentRound].folds.push([]);
+        if(teamWinner === 1) game.rounds[game.currentRound].pointsT1 += winner.points;
+        if(teamWinner === 2) game.rounds[game.currentRound].pointsT2 += winner.points;
+        game.rounds[game.currentRound].currentPlayer = winner.username;
+        game.rounds[game.currentRound].currentFold += 1;
+        game.rounds[game.currentRound].folds.push([]);
       }
-      game.rounds[this.state.game.currentRound].folds[this.state.game.rounds[this.state.game.currentRound].currentFold].push({card: card, username: username});
+      game.rounds[game.currentRound].folds[game.rounds[game.currentRound].currentFold].push({card: card, username: username});
       game = setNextCurrentPlayer(game);
       saveRounds(game);
       if(game.player1.username === username){
@@ -228,6 +252,35 @@ io.on('connection', (client) => {
       } else if(game.player4.username === username){
         game.player4.deck = game.player4.deck.filter(thisCard => (thisCard.suit !== card.suit || thisCard.value !== card.value) );
         updatePlayer(game, game.player4);
+      }
+
+      game = stmt.get(ident);
+      game.player1 = JSON.parse(game.player1);
+      game.player2 = JSON.parse(game.player2);
+      game.player3 = JSON.parse(game.player3);
+      game.player4 = JSON.parse(game.player4);
+      game.rounds = JSON.parse(game.rounds);
+      game.startDeck = JSON.parse(game.startDeck);
+      game.team = JSON.parse(game.team);
+      if(game.player1.deck.length === 0 && game.player2.deck.length === 0 && game.player3.deck.length === 0 && game.player4.deck.length === 0){
+        if(game.rounds[game.currentRound].teamSpeaker === 1){
+          if (game.rounds[game.currentRound].pointsT1 >= game.rounds[game.currentRound].asset.points){
+            game.pointsT1 += game.rounds[game.currentRound].asset.points;
+          } else {
+            game.pointsT2 += 160;
+          }
+        } else if(game.rounds[game.currentRound].teamSpeaker === 2){
+          if (game.rounds[game.currentRound].pointsT2 >= game.rounds[game.currentRound].asset.points){
+            game.pointsT2 += game.rounds[game.currentRound].asset.points;
+          } else {
+            game.pointsT1 += 160;
+          }
+        }
+        if(game.maxPoints <= game.pointsT1 || game.maxPoints <= game.pointsT2){
+          const stmt1 = db.prepare('UPDATE contree SET isFinished=? WHERE ident=?');
+          console.log('[!]#' + chalk.red.bold(game.ident), ' Finished');
+          stmt1.run("true", ident);
+        } else changeRound(game);
       }
     }
     console.log('[!]#' + chalk.greenBright.bold(game.ident), '[ROUNDS] Card played - Updated');
@@ -524,6 +577,83 @@ function winnerOfFold(fold, asset){
     username: winner,
     points: points
   };
+}
+
+function changeRound(game){
+  console.log('[!]#' + chalk.yellow.bold(game.ident), chalk.cyan(' Changing round'));
+  game.startDeck = getAllCards(game.rounds[game.currentRound].folds);
+  const maxKey = game.startDeck.length;
+  let tmp = 1;
+  if(game.currentPlayer === game.team.T1P1){
+    tmp = 2;
+  } else if(game.currentPlayer === game.team.T1P2){
+    tmp = 4;
+  } else if(game.currentPlayer === game.team.T2P2){
+    tmp = 3;
+  }
+  for (let i = 0; i < maxKey; i++) {
+    switch(tmp){
+      case 1:
+        game = addCardToUser(game.startDeck.shift(), game.team.T1P1, game);
+        break;
+      case 2:
+        game = addCardToUser(game.startDeck.shift(), game.team.T2P2, game);
+        break;
+      case 3:
+        game = addCardToUser(game.startDeck.shift(), game.team.T1P2, game);
+        break;
+      case 4:
+        game = addCardToUser(game.startDeck.shift(), game.team.T2P1, game);
+        break;
+      default:
+        break;
+    }
+    tmp += 1;
+    if(tmp === 5) tmp = 1;
+  }
+  game.rounds[game.currentRound].isFinished = true;
+  game.rounds.push({
+    currentSpeaker: game.currentPlayer,
+    bids: [],
+    folds: [[]],
+    asset: {
+      suit: '',
+      points: 70
+    },
+    teamSpeaker: 0,
+    isBidOver: false,
+    isFinished: false,
+    currentFold: 0,
+    pointsT1: 0,
+    pointsT2: 0
+  });
+  saveRounds(game);
+  game.currentRound += 1;
+  const stmt2 = db.prepare('UPDATE contree SET player1=?, player2=?, player3=?, player4=?, currentPlayer=?, currentRound=?, pointsT1=?, pointsT2=? WHERE ident=?');
+  stmt2.run(JSON.stringify(game.player1), JSON.stringify(game.player2), JSON.stringify(game.player3), JSON.stringify(game.player4), game.currentPlayer, game.currentRound, game.pointsT1, game.pointsT2, game.ident);
+}
+
+function addCardToUser(card, username, game){
+  if(game.player1.username === username){
+    game.player1.deck.push(card);
+  } else if(game.player2.username === username){
+    game.player2.deck.push(card);
+  } else if(game.player3.username === username){
+    game.player2.deck.push(card);
+  } else if(game.player4.username === username){
+    game.player3.deck.push(card);
+  }
+  return game;
+}
+
+function getAllCards(folds){
+  let allCards = [];
+  folds.forEach((fold) => {
+    fold.forEach((card) => {
+      allCards.push({suits: card.suits, value: card.value});
+    });
+  });
+  return allCards;
 }
 
 server.listen(port, () => console.log(`Listening on port ${port}`));

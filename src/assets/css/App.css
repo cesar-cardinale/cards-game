@@ -166,6 +166,42 @@ a.back div:hover{
   cursor: not-allowed;
   background-color: darkgray;
 }
+/* Contrée rejoindre une partie */
+.box.contree.join ul, .box.contree.join ul li{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.box.contree.join ul li i{
+  font-size: 18px;
+  margin-right: 4px;
+}
+.box.contree.join ul li button{
+  font-size: 20px;
+  color: #FFF;
+  width: 100%;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  background: none;
+  border: none;
+  border-top: solid 1px rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  text-align: left;
+  padding: 10px 0;
+}
+.box.contree.join ul li button:hover{
+  color: #EEE;
+}
+
+.box.contree.join ul li button .players{
+  float: right;
+  color: #c9034e;
+}
+.box.contree.join ul li button .players i{
+  font-size: 18px;
+  margin-left: 6px;
+  margin-right: 0;
+}
 /* Contrée rejoindre la partie */
 .box.contree.username form input[type='text']{
   padding: 8px 5px;
@@ -481,7 +517,7 @@ a.back div:hover{
   list-style: none;
   margin: 0;
   text-align: center;
-  padding: 0 70px 0 0;
+  padding: 0 230px 0 0;
 }
 .box.contree.play #game_view.me_round .deck{
   animation: pulse 1s infinite;
@@ -678,6 +714,34 @@ a.back div:hover{
 .card .topValue, .card .bottomValue{
   font-weight: bold;
   font-size: 19px;
+}
+
+
+
+
+/**<- Finished ->**/
+.finished .box{
+  background: #FFFFFF;
+  width: 40%;
+  margin: 25vh auto 0;
+  z-index: 9999999;
+  color: #3f3f3f;
+  text-align: center;
+}
+.finished .box .logoBlack{
+  width: 70%;
+  margin: 0 auto;
+}
+.finished .box .logoBlack img{
+  width: 100%;
+}
+.finished .box .winner{
+  font-size: 22px;
+  color: darkgreen;
+}
+.finished .box .looser{
+  font-size: 22px;
+  color: darkred;
 }
 
 

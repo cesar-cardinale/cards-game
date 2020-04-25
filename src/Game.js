@@ -17,28 +17,28 @@ class Game {
         deck: []
     };
     player2 = {
-        username: 'marie',
-        IP: '2',
-        choice: 'king',
+        username: '',
+        IP: '',
+        choice: '',
         deck: []
     };
     player3 = {
-        username: 'martin',
-        IP: '3',
-        choice: 'king',
+        username: '',
+        IP: '',
+        choice: '',
         deck: []
     };
     player4 = {
-        username: 'lucas',
-        IP: '4',
-        choice: 'king',
+        username: '',
+        IP: '',
+        choice: '',
         deck: []
     };
     team = {
         T1P1: '',
-        T1P2: 'marie',
-        T2P1: 'martin',
-        T2P2: 'lucas'
+        T1P2: '',
+        T2P1: '',
+        T2P2: ''
     };
     isTeamSet = false;
     startDeck = [];
@@ -47,6 +47,7 @@ class Game {
     rounds = [];
     currentPlayer = '';
     currentRound = 0;
+    isFinished = false;
 
     constructor(ident, isPrivate, maxPoints) {
         this.ident = ident;
@@ -114,10 +115,136 @@ class Game {
         socket.emit('get-game', this.ident);
     }
 
-
-    static getGameByIdent(ident, cb) {
-        socket.emit('getGame', ident);
-        socket.on('game', (game) => cb(Object.assign(new Game(), game)) );
+    sortMyDeck(deck, asset){
+        if(!deck) return;
+        let carreau = [];
+        let trefle = [];
+        let coeur = [];
+        let pique = [];
+        deck.forEach((card) => {
+            if (card.suit === asset.suit) { // Atout
+                switch (card.value) {
+                    case 'V':
+                        if(card.suit === 'carreau') carreau.push({valueInt: 8, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'trefle') trefle.push({valueInt: 8, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'coeur') coeur.push({valueInt: 8, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'pique') pique.push({valueInt: 8, value: card.value, suit: card.suit, color: card.color});
+                        break;
+                    case 9:
+                        if(card.suit === 'carreau') carreau.push({valueInt: 7, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'trefle') trefle.push({valueInt: 7, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'coeur') coeur.push({valueInt: 7, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'pique') pique.push({valueInt: 7, value: card.value, suit: card.suit, color: card.color});
+                        break;
+                    case 'A':
+                        if(card.suit === 'carreau') carreau.push({valueInt: 6, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'trefle') trefle.push({valueInt: 6, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'coeur') coeur.push({valueInt: 6, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'pique') pique.push({valueInt: 6, value: card.value, suit: card.suit, color: card.color});
+                        break;
+                    case 10:
+                        if(card.suit === 'carreau') carreau.push({valueInt: 5, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'trefle') trefle.push({valueInt: 5, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'coeur') coeur.push({valueInt: 5, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'pique') pique.push({valueInt: 5, value: card.value, suit: card.suit, color: card.color});
+                        break;
+                    case 'K':
+                        if(card.suit === 'carreau') carreau.push({valueInt: 4, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'trefle') trefle.push({valueInt: 4, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'coeur') coeur.push({valueInt: 4, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'pique') pique.push({valueInt: 4, value: card.value, suit: card.suit, color: card.color});
+                        break;
+                    case 'Q':
+                        if(card.suit === 'carreau') carreau.push({valueInt: 3, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'trefle') trefle.push({valueInt: 3, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'coeur') coeur.push({valueInt: 3, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'pique') pique.push({valueInt: 3, value: card.value, suit: card.suit, color: card.color});
+                        break;
+                    case 8:
+                        if(card.suit === 'carreau') carreau.push({valueInt: 2, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'trefle') trefle.push({valueInt: 2, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'coeur') coeur.push({valueInt: 2, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'pique') pique.push({valueInt: 2, value: card.value, suit: card.suit, color: card.color});
+                        break;
+                    case 7:
+                        if(card.suit === 'carreau') carreau.push({valueInt: 1, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'trefle') trefle.push({valueInt: 1, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'coeur') coeur.push({valueInt: 1, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'pique') pique.push({valueInt: 1, value: card.value, suit: card.suit, color: card.color});
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+                switch (card.value) {
+                    case 'A':
+                        if(card.suit === 'carreau') carreau.push({valueInt: 8, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'trefle') trefle.push({valueInt: 8, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'coeur') coeur.push({valueInt: 8, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'pique') pique.push({valueInt: 8, value: card.value, suit: card.suit, color: card.color});
+                        break;
+                    case 10:
+                        if(card.suit === 'carreau') carreau.push({valueInt: 7, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'trefle') trefle.push({valueInt: 7, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'coeur') coeur.push({valueInt: 7, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'pique') pique.push({valueInt: 7, value: card.value, suit: card.suit, color: card.color});
+                        break;
+                    case 'K':
+                        if(card.suit === 'carreau') carreau.push({valueInt: 6, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'trefle') trefle.push({valueInt: 6, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'coeur') coeur.push({valueInt: 6, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'pique') pique.push({valueInt: 6, value: card.value, suit: card.suit, color: card.color});
+                        break;
+                    case 'Q':
+                        if(card.suit === 'carreau') carreau.push({valueInt: 5, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'trefle') trefle.push({valueInt: 5, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'coeur') coeur.push({valueInt: 5, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'pique') pique.push({valueInt: 5, value: card.value, suit: card.suit, color: card.color});
+                        break;
+                    case 'V':
+                        if(card.suit === 'carreau') carreau.push({valueInt: 4, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'trefle') trefle.push({valueInt: 4, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'coeur') coeur.push({valueInt: 4, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'pique') pique.push({valueInt: 4, value: card.value, suit: card.suit, color: card.color});
+                        break;
+                    case 9:
+                        if(card.suit === 'carreau') carreau.push({valueInt: 3, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'trefle') trefle.push({valueInt: 3, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'coeur') coeur.push({valueInt: 3, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'pique') pique.push({valueInt: 3, value: card.value, suit: card.suit, color: card.color});
+                        break;
+                    case 8:
+                        if(card.suit === 'carreau') carreau.push({valueInt: 2, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'trefle') trefle.push({valueInt: 2, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'coeur') coeur.push({valueInt: 2, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'pique') pique.push({valueInt: 2, value: card.value, suit: card.suit, color: card.color});
+                        break;
+                    case 7:
+                        if(card.suit === 'carreau') carreau.push({valueInt: 1, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'trefle') trefle.push({valueInt: 1, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'coeur') coeur.push({valueInt: 1, value: card.value, suit: card.suit, color: card.color});
+                        if(card.suit === 'pique') pique.push({valueInt: 1, value: card.value, suit: card.suit, color: card.color});
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+        carreau.sort(function(a, b) { return a.valueInt - b.valueInt; });
+        trefle.sort(function(a, b) { return a.valueInt - b.valueInt; });
+        coeur.sort(function(a, b) { return a.valueInt - b.valueInt; });
+        pique.sort(function(a, b) { return a.valueInt - b.valueInt; });
+        let allCardsInt = [].concat(carreau, trefle, coeur, pique);
+        allCardsInt.reverse();
+        let allCards = [];
+        allCardsInt.forEach((card) => {
+            allCards.push({value: card.value, suit: card.suit, color: card.color});
+        });
+        return allCards;
+    }
+    static getAllGamesJoinable(cb) {
+        socket.emit('get-all-games');
+        socket.on('all-games', (games) => cb(games) );
     }
 }
 export { Game };
