@@ -314,7 +314,7 @@ class ContreePlay extends React.Component {
 			game.rounds = JSON.parse(game.rounds);
 			game.isFinished = JSON.parse(game.isFinished);
 			this.setState((state) => ({game: Object.assign(state.game, game)}));
-		}p
+		}
 		if (this.state.game.ident !== this.state.ident) this.props.history.replace('/Contree');
 	}
 	checkIfNoUpdate(){
