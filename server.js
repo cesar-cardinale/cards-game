@@ -209,8 +209,8 @@ io.on('connection', (client) => {
     if(game) {
       game.team = JSON.parse(game.team);
       game.rounds = JSON.parse(game.rounds);
-      game = setNextCurrentPlayer(game);
       game = testIfBidIsFinished(game);
+      game = setNextCurrentPlayer(game);
       saveRounds(game);
       console.log('[!]#' + chalk.greenBright.bold(game.ident), '[ROUNDS] Pass - Updated');
     }
