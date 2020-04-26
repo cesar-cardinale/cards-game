@@ -311,7 +311,7 @@ class ContreePlay extends React.Component {
 	}
 	checkIfNoUpdate(){
 		const date = new Date();
-		if(date - this.state.lastUpdate > 10*1000){
+		if(date - this.state.lastUpdate > 30*1000){
 			console.log('update needed');
 			this.state.game.sendUpdateNeeded();
 		}
