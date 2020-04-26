@@ -209,8 +209,8 @@ io.on('connection', (client) => {
     if(game) {
       game.team = JSON.parse(game.team);
       game.rounds = JSON.parse(game.rounds);
-      game = testIfBidIsFinished(game);
       game = setNextCurrentPlayer(game);
+      game = testIfBidIsFinished(game);
       saveRounds(game);
       console.log('[!]#' + chalk.greenBright.bold(game.ident), '[ROUNDS] Pass - Updated');
     }
@@ -424,6 +424,7 @@ function testIfBidIsFinished(game){
     game.rounds[game.currentRound].asset.points = game.rounds[game.currentRound].bids[game.rounds[game.currentRound].bids.length-1].points;
     game.rounds[game.currentRound].asset.suit = game.rounds[game.currentRound].bids[game.rounds[game.currentRound].bids.length-1].suit;
     game.rounds[game.currentRound].teamSpeaker = getTeam(game.rounds[game.currentRound].bids[game.rounds[game.currentRound].bids.length-1].username, game.team);
+    console.log('[!]#' + chalk.yellow.bold(game.ident), chalk.greenBright('[ROUNDS] Bis is over'));
   }
   return game;
 }
@@ -434,8 +435,10 @@ function getTeam(username, team){
 }
 
 function saveRounds(game) {
-  const stmt2 = db.prepare('UPDATE contree SET rounds=? WHERE ident=?');
-  stmt2.run(JSON.stringify(game.rounds), game.ident);
+  const stmt2 = db.prepare('UPDATE contree SET rounds=?, isBidOver=? WHERE ident=?');
+  let isBidOver;
+  ((game.isBidOver === "true" || game.isBidOver) && game.isBidOver !== "false")? isBidOver = "true" : isBidOver = "false" ;
+  stmt2.run(JSON.stringify(game.rounds), isBidOver, game.ident);
 }
 
 function updatePlayer(game, player) {
