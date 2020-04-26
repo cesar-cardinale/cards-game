@@ -372,10 +372,12 @@ class ContreePlay extends React.Component {
 	chooseKing(){
 		document.querySelector('#choices').remove();
 		this.state.game.setChoice(this.handleLiveGame, this.handleCurrentPlayer, 'king', this.state.currentPlayer.username);
+		document.location.reload(true);
 	}
 	chooseMate(){
 		document.querySelector('#choices').remove();
 		this.state.game.setChoice(this.handleLiveGame, this.handleCurrentPlayer, 'mates', this.state.currentPlayer.username);
+		document.location.reload(true);
 	}
 	watingView(){
 		if( (this.state.game.player1 && this.state.game.player1.choice && this.state.game.player2 && this.state.game.player2.choice && this.state.game.player3 && this.state.game.player3.choice && this.state.game.player4 && this.state.game.player4.choice) || this.state.game.isTeamSet ) return '';
@@ -615,9 +617,9 @@ const ConfettiSet = () => {
 	return (<Confetti width={width} height={height} />);
 }
 
-const GamesList = ({games, handleRedirect}) => (games.length > 0)? games.map((game) => <li key={game.ident}><button onClick={() => handleRedirect(game.ident)}>
+const GamesList = ({games, handleRedirect}) => (games.length > 0)? games.map((game) => ([game.player1, game.player2, game.player3, game.player4].filter( (el) => el !== null ).length < 4)? <li key={game.ident}><button onClick={() => handleRedirect(game.ident)}>
 	<i className="fas fa-sign-in" /> #{game.ident} <div className="players">{[game.player1, game.player2, game.player3, game.player4].filter( (el) => el !== null ).length}
-	<i className="fas fa-users" /></div></button></li> ) : '';
+	<i className="fas fa-users" /></div></button></li> : '' ) : '';
 
 /**
  * @return {null}
