@@ -34,7 +34,6 @@ class Menu extends React.Component {
 			<div className="box menu">
 				<Logo />
 				<Button link="/Contree" classTitle="game" text="Contrée" />
-				{/* <Button link="/Belote" classTitle="game" text="Belote" /> */}
 			</div>
 		);
 	}
@@ -195,16 +194,25 @@ class ContreeUsername extends React.Component {
 		this.state.game.getCurrentPlayer(this.handlePlayerIsAlreadyInGame);
 	}
 	handleLiveGame(game){
-		this.setState((state) => ({game: Object.assign(state.game, game)}) );
-		if(this.state.game.player1 && this.state.game.player1.username && this.state.game.player2 && this.state.game.player2.username && this.state.game.player3 && this.state.game.player3.username && this.state.game.player4 && this.state.game.player4.username){
-			document.getElementById('buttonCapacity').classList.add('show');
-			document.getElementById('form').style.display = 'none';
-			document.querySelector('h3').style.display = 'none';
+		if(game.ident === this.state.ident) {
+			game.team = JSON.parse(game.team);
+			game.isTeamSet = JSON.parse(game.isTeamSet);
+			game.player1 = JSON.parse(game.player1);
+			game.player2 = JSON.parse(game.player2);
+			game.player3 = JSON.parse(game.player3);
+			game.player4 = JSON.parse(game.player4);
+			this.setState((state) => ({game: Object.assign(state.game, game)}));
+			if (this.state.game.player1 && this.state.game.player1.username && this.state.game.player2 && this.state.game.player2.username && this.state.game.player3 && this.state.game.player3.username && this.state.game.player4 && this.state.game.player4.username) {
+				document.getElementById('buttonCapacity').classList.add('show');
+				document.getElementById('form').style.display = 'none';
+				document.querySelector('h3').style.display = 'none';
+			}
 		}
 		if(this.state.game.ident !== this.state.ident) this.props.history.replace('/Contree');
 	}
 
 	handlePlayerIsAlreadyInGame(player){
+		{/* Les utilisateurs sont identifiés par leur IP, pour avoir 4 utilisateurs en ligne il suffit de se connecter avec 4 IP différentes */}
 		if(player !== null && this.props.history.action === 'POP'){
 			this.props.history.replace('/Contree/Play/'+this.state.game.ident);
 			document.location.reload(true);
@@ -306,13 +314,12 @@ class ContreePlay extends React.Component {
 			game.rounds = JSON.parse(game.rounds);
 			game.isFinished = JSON.parse(game.isFinished);
 			this.setState((state) => ({game: Object.assign(state.game, game)}));
-		}
+		}p
 		if (this.state.game.ident !== this.state.ident) this.props.history.replace('/Contree');
 	}
 	checkIfNoUpdate(){
 		const date = new Date();
 		if(date - this.state.lastUpdate > 30*1000){
-			console.log('update needed');
 			this.state.game.sendUpdateNeeded();
 		}
 	}
@@ -428,13 +435,12 @@ class ContreePlay extends React.Component {
 	}
 	choiceView(){
 		if(this.state.game.player1 && this.state.game.player1.choice && this.state.game.player2 && this.state.game.player2.choice && this.state.game.player3 && this.state.game.player3.choice && this.state.game.player4 && this.state.game.player4.choice && !this.state.game.isTeamSet){
-			const choice = this.state.game.getChoice(); //{value: 'mates', title: 'Séléctionnez votre équipier'}; //{value: 'king', title: 'king'}; //
+			const choice = this.state.game.getChoice(); {/* {value: 'mates', title: 'Séléctionnez votre équipier'}; {value: 'king', title: 'king'}; */}
 			const me = this.getMate('me');
 			const mate = this.getMate('mate');
 			const adv1 = this.getMate('first');
 			const adv2 = this.getMate('second');
 			let scene;
-			//if(choice.value === 'king') scene = this.choiceKingScene(me, mate, adv1, adv2); Pas d'animation pour le moment
 			if(choice.value === 'mates') scene = this.choiceMatesScene(me, mate, adv1, adv2);
 			return(
 				<div id="choice">
@@ -515,7 +521,6 @@ class ContreePlay extends React.Component {
 		if(color && this.state.game.rounds[this.state.game.currentRound].currentSpeaker === this.state.currentPlayer.username){
 			this.state.game.rounds[this.state.game.currentRound].bids.push({points: points, suit: color.value, username: this.state.currentPlayer.username});
 			this.state.game.newBid();
-			console.log(points, color.value);
 			document.querySelector('.me_bid').classList.remove('me_bid');
 			animateCSS('.bid', 'fadeOutDown', function() { document.querySelector('.bid').remove(); });
 		}
@@ -529,8 +534,8 @@ class ContreePlay extends React.Component {
 		this.state.game.cardPlayedFrom(card, this.state.currentPlayer.username);
 	}
 	gameFinishedView(){
-		let winner = '{error}';
-		let looser = '{error}';
+		let winner = '-';
+		let looser = '-';
 		let pointsWinner = 0;
 		let pointsLooser = 0;
 		if(this.state.game.pointsT1 >= this.state.game.maxPoints){
@@ -548,7 +553,7 @@ class ContreePlay extends React.Component {
 		return (
 			<div className="finished">
 				<ConfettiSet />
-				<div className="box">
+				<div className="box animated fadeIn">
 					<div className="logoBlack"><a href="/"><img src={logo} alt="logo"/></a></div>
 					<h2>Bravo à {winner}</h2>
 					<h3>contre {looser}</h3>
@@ -559,7 +564,6 @@ class ContreePlay extends React.Component {
 		);
 	}
 	render()  {
-		console.log('JEU', this.state.game);
 		if(this.state.game.isFinished) return( this.gameFinishedView() );
 		return (
 			<div className='box contree play'>
@@ -630,6 +634,7 @@ function ChoiceFlag({user}){
 	return null;
 }
 
+{/* Code reprit de https://github.com/daneden/animate.css pour animer le contenu */}
 function animateCSS(element, animationName, callback) {
 	const node = document.querySelector(element);
 	node.classList.add('animated', animationName);
