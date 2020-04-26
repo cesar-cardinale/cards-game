@@ -1,7 +1,7 @@
 const io = require('socket.io-client');
 const socketURL =
     process.env.NODE_ENV === 'production'
-        ? 'http://192.168.1.11:4001'
+        ? 'http://web.cesarcardinale.fr:4001'
         : 'http://localhost:4001';
 
 const socket = io.connect(socketURL, {secure: true});
