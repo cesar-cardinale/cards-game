@@ -419,7 +419,7 @@ function setNextCurrentPlayer(game) {
 function testIfBidIsFinished(game){
   // !!! GAME.ROUNDS ET GAME.TEAM DOIVENT ÊTRE PARSÉS
   if (game.rounds[game.currentRound].bids.length > 0 && game.rounds[game.currentRound].currentSpeaker === game.rounds[game.currentRound].bids[game.rounds[game.currentRound].bids.length-1].username) {
-    game.isBidOver = true;
+    game.rounds[game.currentRound].isBidOver = true;
     game.rounds[game.currentRound].currentSpeaker = game.currentPlayer;
     game.rounds[game.currentRound].asset.points = game.rounds[game.currentRound].bids[game.rounds[game.currentRound].bids.length-1].points;
     game.rounds[game.currentRound].asset.suit = game.rounds[game.currentRound].bids[game.rounds[game.currentRound].bids.length-1].suit;
@@ -437,7 +437,7 @@ function getTeam(username, team){
 function saveRounds(game) {
   const stmt2 = db.prepare('UPDATE contree SET rounds=?, isBidOver=? WHERE ident=?');
   let isBidOver;
-  ((game.isBidOver === "true" || game.isBidOver) && game.isBidOver !== "false")? isBidOver = "true" : isBidOver = "false" ;
+  ( game.isBidOver)? isBidOver = "true" : isBidOver = "false" ;
   stmt2.run(JSON.stringify(game.rounds), isBidOver, game.ident);
 }
 
